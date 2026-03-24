@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BI — Gestão de Emendas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#07152a;--navy-card:rgba(13,34,64,.78);--navy-dark:rgba(7,21,42,.9);
+  --gold:#c9a84c;--gold-light:#e8c96d;--gold-dim:#8a6f2e;
+  --cream:#f5f0e8;--text:#e8e4dc;--text-dim:#8fa3b8;
+  --border:rgba(201,168,76,.18);
+  --ok:#4caf82;--warn:#e09a3a;--err:#e05a5a;--crit:#ff4444;--azul:#5b9bd5;
+  --sidebar-w:220px;
+}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 70% 50% at 15% 30%,rgba(22,53,97,.4) 0%,transparent 60%),#07152a}
+.top-bar{position:fixed;top:0;left:0;right:0;height:3px;z-index:100;background:linear-gradient(90deg,transparent,var(--gold) 40%,var(--gold-light) 60%,transparent)}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--navy-dark);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:3px;bottom:0;backdrop-filter:blur(20px);z-index:50}
+.sidebar-header{padding:1.25rem 1rem .875rem;border-bottom:1px solid var(--border)}
+.logo-row{display:flex;align-items:center;gap:.55rem}
+.logo-icon{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:rgba(201,168,76,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-text{font-family:'Cormorant Garamond',serif;font-size:.95rem;font-weight:500;color:var(--cream)}
+.logo-sub{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim)}
+.nav{flex:1;padding:.6rem 0;overflow-y:auto}
+.nav-section{padding:.35rem 1rem .15rem;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-dim);font-weight:500;margin-top:.5rem}
+.nav-item{display:flex;align-items:center;gap:.55rem;padding:.55rem 1rem;color:var(--text-dim);cursor:pointer;transition:all .2s;font-size:.8rem;border-left:2px solid transparent;text-decoration:none}
+.nav-item:hover{color:var(--text);background:rgba(201,168,76,.05)}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,168,76,.08)}
+.nav-item.hidden{display:none}
+.nav-badge{margin-left:auto;background:rgba(255,68,68,.2);color:#ff8080;font-size:.62rem;padding:.12rem .45rem;border-radius:20px;border:1px solid rgba(255,68,68,.3)}
+.sidebar-footer{padding:.75rem 1rem;border-top:1px solid var(--border)}
+.user-info{display:flex;align-items:center;gap:.55rem;margin-bottom:.55rem}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dim),var(--gold));display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:500;color:var(--navy);flex-shrink:0}
+.user-name{font-size:.78rem;color:var(--text);font-weight:500}
+.user-role{font-size:.64rem;color:var(--text-dim)}
+.btn-logout{width:100%;padding:.4rem;background:rgba(224,90,90,.08);border:1px solid rgba(224,90,90,.2);border-radius:6px;color:#f08080;font-size:.72rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem;transition:all .2s;font-family:inherit}
+
+/* MAIN */
+.main{margin-left:var(--sidebar-w);flex:1;padding:1.5rem 1.75rem;position:relative;z-index:1;animation:fadeIn .4s both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:500;color:var(--cream)}
+.page-sub{font-size:.75rem;color:var(--text-dim);margin-top:.2rem}
+.btn-atualizar{padding:.55rem 1.1rem;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border:none;border-radius:8px;color:var(--navy);font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:.4rem;transition:all .2s}
+.btn-atualizar:hover{box-shadow:0 4px 12px rgba(201,168,76,.25)}
+.btn-atualizar:disabled{opacity:.6;cursor:not-allowed}
+
+/* TAB CONTEÚDO */
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* KPI GRID */
+.kpi-grid{display:grid;gap:.875rem;margin-bottom:1.25rem}
+.kpi-grid.cols4{grid-template-columns:repeat(4,1fr)}
+.kpi-grid.cols3{grid-template-columns:repeat(3,1fr)}
+.kpi-grid.cols5{grid-template-columns:repeat(5,1fr)}
+.kpi{background:var(--navy-card);border:1px solid var(--border);border-radius:12px;padding:.875rem 1.1rem;backdrop-filter:blur(12px)}
+.kpi-label{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:.3rem}
+.kpi-value{font-family:'Cormorant Garamond',serif;font-size:1.75rem;font-weight:500;color:var(--cream);line-height:1}
+.kpi-sub{font-size:.68rem;color:var(--text-dim);margin-top:.25rem}
+
+/* GAUGE */
+.gauge-wrap{text-align:center}
+.gauge-value{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:500}
+.gauge-label{font-size:.7rem;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase}
+
+/* CHART CARDS */
+.charts-row{display:grid;gap:.875rem;margin-bottom:1.25rem}
+.charts-row.c2{grid-template-columns:1fr 1fr}
+.charts-row.c3{grid-template-columns:1fr 1fr 1fr}
+.charts-row.c13{grid-template-columns:1fr 3fr}
+.chart-card{background:var(--navy-card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;backdrop-filter:blur(12px)}
+.chart-title{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:.875rem;font-weight:500}
+.chart-wrap{position:relative;width:100%}
+
+/* HEATMAP */
+.heatmap-grid{display:grid;gap:3px;margin-top:.5rem}
+.hm-cell{border-radius:4px;padding:.4rem .5rem;font-size:.68rem;cursor:default;transition:opacity .15s;position:relative}
+.hm-cell:hover{opacity:.85}
+.hm-header{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);padding:.3rem .5rem}
+
+/* GANTT */
+.gantt-wrap{overflow-x:auto}
+.gantt-row{display:flex;align-items:center;gap:.75rem;padding:.45rem 0;border-bottom:1px solid rgba(201,168,76,.06)}
+.gantt-row:last-child{border-bottom:none}
+.gantt-label{font-size:.75rem;color:var(--text);min-width:100px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gantt-bar-wrap{flex:1;background:rgba(255,255,255,.06);border-radius:4px;height:18px;position:relative;overflow:hidden}
+.gantt-bar{height:100%;border-radius:4px;transition:width .5s ease;display:flex;align-items:center;padding-left:.4rem}
+.gantt-pct{font-size:.62rem;color:rgba(7,21,42,.8);font-weight:600;white-space:nowrap}
+.gantt-dates{font-size:.63rem;color:var(--text-dim);min-width:110px;text-align:right}
+
+/* TABELAS */
+.tbl-card{background:var(--navy-card);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(12px);overflow:hidden;margin-bottom:1.25rem}
+.tbl-header{padding:.875rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.tbl-title{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);font-weight:500}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+thead tr{background:rgba(7,21,42,.5)}
+th{padding:.55rem .875rem;text-align:left;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim);font-weight:500;white-space:nowrap;border-bottom:1px solid var(--border)}
+td{padding:.65rem .875rem;color:var(--text);border-bottom:1px solid rgba(201,168,76,.05);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(201,168,76,.03)}
+
+/* SCORE BAR */
+.score-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:.25rem}
+.score-fill{height:100%;border-radius:3px;transition:width .6s ease}
+
+/* PILLS */
+.pill{display:inline-flex;align-items:center;padding:.15rem .5rem;border-radius:20px;font-size:.65rem;font-weight:500;white-space:nowrap}
+.pill-ok{background:rgba(76,175,130,.1);color:var(--ok);border:1px solid rgba(76,175,130,.2)}
+.pill-warn{background:rgba(224,154,58,.1);color:#f5c56d;border:1px solid rgba(224,154,58,.2)}
+.pill-err{background:rgba(224,90,90,.1);color:#f08080;border:1px solid rgba(224,90,90,.2)}
+.pill-crit{background:rgba(255,68,68,.15);color:#ff8080;border:1px solid rgba(255,68,68,.3)}
+
+/* FEED INCONSISTÊNCIAS */
+.feed-item{display:flex;align-items:flex-start;gap:.6rem;padding:.65rem;border-bottom:1px solid rgba(201,168,76,.06);transition:background .15s}
+.feed-item:last-child{border-bottom:none}
+.feed-item:hover{background:rgba(201,168,76,.03)}
+.feed-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.feed-conta{font-size:.7rem;color:var(--gold);font-weight:500;margin-bottom:.1rem}
+.feed-msg{font-size:.75rem;color:var(--text)}
+.feed-tipo{font-size:.63rem;color:var(--text-dim)}
+
+/* SUB-TABS COMPRAS */
+.sub-tabs{display:flex;gap:0;margin-bottom:1.25rem;border-bottom:1px solid var(--border)}
+.sub-tab{padding:.55rem 1.1rem;font-size:.78rem;font-weight:500;color:var(--text-dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap}
+.sub-tab:hover{color:var(--text)}
+.sub-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.sub-content{display:none}
+.sub-content.active{display:block}
+
+/* SPINNER */
+.loading-overlay{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem;gap:1rem;color:var(--text-dim);font-size:.82rem}
+.spinner-lg{width:32px;height:32px;border:3px solid rgba(201,168,76,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:300;padding:.75rem 1rem;border-radius:10px;font-size:.8rem;display:flex;align-items:center;gap:.5rem;transform:translateY(20px);opacity:0;transition:all .3s cubic-bezier(.23,1,.32,1);max-width:300px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.sucesso{background:rgba(76,175,130,.15);border:1px solid rgba(76,175,130,.3);color:#6dd6a8}
+.toast.erro{background:rgba(224,90,90,.15);border:1px solid rgba(224,90,90,.3);color:#f08080}
+
+/* Responsive */
+@media(max-width:1200px){.kpi-grid.cols5{grid-template-columns:repeat(3,1fr)}.kpi-grid.cols4{grid-template-columns:repeat(2,1fr)}.charts-row.c3{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.main{margin-left:0;padding:1rem}.sidebar{transform:translateX(-100%)}.charts-row.c2,.charts-row.c13{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<div class="bg"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo-row">
+      <div class="logo-icon">
+        <svg width="15" height="15" viewBox="0 0 32 32" fill="none"><path d="M4 20C4 20 7 14 16 14C25 14 28 18 28 18C28 18 25 24 20 25C15 26 10 24 7 22L4 20Z" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/><circle cx="22" cy="18" r="1.5" fill="#c9a84c"/></svg>
+      </div>
+      <div><div class="logo-text">BI — Emendas</div><div class="logo-sub">Hospital da Baleia</div></div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Painéis</div>
+    <a class="nav-item active" onclick="ativarTab('geral')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      BI Geral
+    </a>
+    <a class="nav-item" onclick="ativarTab('compras')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+      BI Compras
+    </a>
+    <a class="nav-item" onclick="ativarTab('financeiro')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      BI Financeiro
+    </a>
+    <a class="nav-item" onclick="ativarTab('contabilidade')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+      BI Contabilidade
+    </a>
+    <a class="nav-item hidden" id="nav-monitor" onclick="ativarTab('monitoramento')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      Monitoramento
+      <span class="nav-badge" id="badgeInconsist">0</span>
+    </a>
+    <div class="nav-section">Módulos</div>
+    <a class="nav-item" href="admin.html" style="font-size:.75rem;color:var(--text-dim)">← Voltar ao sistema</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar" id="sidebarAvatar">?</div>
+      <div><div class="user-name" id="sidebarNome">—</div><div class="user-role" id="sidebarRole">—</div></div>
+    </div>
+    <button class="btn-logout" onclick="logout()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sair
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ═══════════════════════ BI GERAL ═══════════════════════ -->
+<div class="tab-content active" id="content-geral">
+  <div class="page-header">
+    <div><div class="page-title">BI Geral</div><div class="page-sub">Visão consolidada de todas as emendas</div></div>
+    <button class="btn-atualizar" onclick="carregar('geral')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      Atualizar
+    </button>
+  </div>
+  <div id="geral-body"><div class="loading-overlay"><div class="spinner-lg"></div><span>Carregando dados...</span></div></div>
+</div>
+
+<!-- ═══════════════════════ BI COMPRAS ══════════════════════ -->
+<div class="tab-content" id="content-compras">
+  <div class="page-header">
+    <div><div class="page-title">BI Compras</div><div class="page-sub">Execução financeira por categoria</div></div>
+    <button class="btn-atualizar" onclick="carregar('compras')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      Atualizar
+    </button>
+  </div>
+  <div class="sub-tabs">
+    <button class="sub-tab active" onclick="ativarSubTab('custeio')">Custeio</button>
+    <button class="sub-tab" onclick="ativarSubTab('investimento')">Investimento</button>
+    <button class="sub-tab" onclick="ativarSubTab('contrato')">Contrato</button>
+  </div>
+  <div id="compras-body"><div class="loading-overlay"><div class="spinner-lg"></div><span>Carregando dados...</span></div></div>
+</div>
+
+<!-- ═══════════════════════ BI FINANCEIRO ═══════════════════ -->
+<div class="tab-content" id="content-financeiro">
+  <div class="page-header">
+    <div><div class="page-title">BI Financeiro</div><div class="page-sub">Fluxo de pagamentos e saldos</div></div>
+    <button class="btn-atualizar" onclick="carregar('financeiro')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      Atualizar
+    </button>
+  </div>
+  <div id="financeiro-body"><div class="loading-overlay"><div class="spinner-lg"></div><span>Carregando dados...</span></div></div>
+</div>
+
+<!-- ═══════════════════════ BI CONTABILIDADE ════════════════ -->
+<div class="tab-content" id="content-contabilidade">
+  <div class="page-header">
+    <div><div class="page-title">BI Contabilidade</div><div class="page-sub">Prestações de contas e vigências</div></div>
+    <button class="btn-atualizar" onclick="carregar('contabilidade')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      Atualizar
+    </button>
+  </div>
+  <div id="contabilidade-body"><div class="loading-overlay"><div class="spinner-lg"></div><span>Carregando dados...</span></div></div>
+</div>
+
+<!-- ═══════════════════════ MONITORAMENTO ═══════════════════ -->
+<div class="tab-content" id="content-monitoramento">
+  <div class="page-header">
+    <div><div class="page-title">Monitoramento</div><div class="page-sub">Score de saúde, inconsistências e evolução — Núcleo de Projetos</div></div>
+    <button class="btn-atualizar" onclick="carregar('monitoramento')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      Atualizar
+    </button>
+  </div>
+  <div id="monitoramento-body"><div class="loading-overlay"><div class="spinner-lg"></div><span>Carregando dados...</span></div></div>
+</div>
+
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+const API_URL = 'https://script.google.com/macros/s/AKfycbyjEoIbY8BpSRfMvPpRWmy4WYSiTlvl9bbZ70XYE-KBvPGfjNSvg13Oa5iVYqb1RnKt/exec';
+// ══════════════════════════════════════════════════
+
+let TOKEN = null, SESSAO = null;
+const CACHE = {};
+const chartInstances = {};
+const COR = { ok:'#4caf82', warn:'#e09a3a', err:'#e05a5a', crit:'#ff4444', azul:'#5b9bd5', gold:'#c9a84c' };
+
+// Chart.js defaults
+Chart.defaults.color = '#8fa3b8';
+Chart.defaults.borderColor = 'rgba(201,168,76,0.1)';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.font.size = 11;
+
+document.addEventListener('DOMContentLoaded', () => {
+  TOKEN = localStorage.getItem('emendas_token');
+  const raw = localStorage.getItem('emendas_usuario');
+  if (!TOKEN || !raw) { window.location.href = 'index.html'; return; }
+  SESSAO = JSON.parse(raw);
+  document.getElementById('sidebarNome').textContent   = SESSAO.nome;
+  document.getElementById('sidebarAvatar').textContent = SESSAO.nome.charAt(0).toUpperCase();
+  document.getElementById('sidebarRole').textContent   = SESSAO.setor;
+
+  if (SESSAO.setor === 'NucleoProj') {
+    document.getElementById('nav-monitor').classList.remove('hidden');
+  }
+
+  carregar('geral');
+});
+
+async function api(acao, payload = {}) {
+  const res = await fetch(API_URL, {
+    method:'POST', headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify({ acao, token: TOKEN, payload })
+  });
+  if (!res.ok) throw new Error('Erro de rede: ' + res.status);
+  const data = await res.json();
+  if (data.relogin) { localStorage.clear(); window.location.href = 'index.html'; }
+  return data;
+}
+
+// ── NAVEGAÇÃO ──
+function ativarTab(tab) {
+  ['geral','compras','financeiro','contabilidade','monitoramento'].forEach(t => {
+    document.getElementById('content-' + t).classList.toggle('active', t === tab);
+  });
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const navEl = document.querySelector(`.nav-item[onclick="ativarTab('${tab}')"]`);
+  if (navEl) navEl.classList.add('active');
+
+  if (!CACHE[tab]) carregar(tab);
+}
+
+function ativarSubTab(sub) {
+  document.querySelectorAll('.sub-tab').forEach((el,i) => {
+    const subs = ['custeio','investimento','contrato'];
+    el.classList.toggle('active', subs[i] === sub);
+  });
+  document.querySelectorAll('.sub-content').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('sub-' + sub);
+  if (el) el.classList.add('active');
+}
+
+// ── CARREGAR DADOS ──
+async function carregar(modulo) {
+  const bodyEl = document.getElementById(modulo + '-body');
+  bodyEl.innerHTML = '<div class="loading-overlay"><div class="spinner-lg"></div><span>Carregando ' + modulo + '...</span></div>';
+
+  // Destruir charts anteriores
+  Object.keys(chartInstances).filter(k => k.startsWith(modulo)).forEach(k => {
+    chartInstances[k].destroy();
+    delete chartInstances[k];
+  });
+
+  try {
+    const res = await api('bi.dados', { modulo });
+    if (!res.ok) { showToast(res.erro, 'erro'); return; }
+    CACHE[modulo] = res;
+
+    switch(modulo) {
+      case 'geral':         renderGeral(res); break;
+      case 'compras':       renderCompras(res); break;
+      case 'financeiro':    renderFinanceiro(res); break;
+      case 'contabilidade': renderContabilidade(res); break;
+      case 'monitoramento': renderMonitoramento(res); break;
+    }
+  } catch(e) {
+    bodyEl.innerHTML = '<div class="loading-overlay"><p style="color:var(--err)">Erro ao carregar: ' + e.message + '</p></div>';
+    showToast('Erro ao carregar BI.', 'erro');
+  }
+}
+
+// ══════════════════════════════════════════════════
+// RENDER BI GERAL
+// ══════════════════════════════════════════════════
+function renderGeral(d) {
+  const { kpis, porEsfera, porNatureza, porAno, heatmap, gantt } = d;
+  const el = document.getElementById('geral-body');
+
+  el.innerHTML = `
+    <!-- KPIs principais -->
+    <div class="kpi-grid cols4" style="margin-bottom:1.25rem">
+      <div class="kpi"><div class="kpi-label">Total Creditado</div><div class="kpi-value" style="color:var(--gold)">${fmt(kpis.totalCreditado)}</div></div>
+      <div class="kpi"><div class="kpi-label">Comprometido (OCs)</div><div class="kpi-value" style="color:var(--warn)">${fmt(kpis.totalOCs)}</div></div>
+      <div class="kpi"><div class="kpi-label">Pago</div><div class="kpi-value" style="color:var(--ok)">${fmt(kpis.totalPago)}</div></div>
+      <div class="kpi"><div class="kpi-label">Disponível</div><div class="kpi-value" style="color:${kpis.disponivel<0?'var(--err)':'var(--cream)'}">${fmt(kpis.disponivel)}</div></div>
+    </div>
+    <div class="kpi-grid cols3" style="margin-bottom:1.25rem">
+      <div class="kpi"><div class="kpi-label">Emendas Ativas</div><div class="kpi-value" style="color:var(--ok)">${kpis.ativas}</div></div>
+      <div class="kpi"><div class="kpi-label">Vigência Vencida</div><div class="kpi-value" style="color:var(--err)">${kpis.vencidas}</div></div>
+      <div class="kpi"><div class="kpi-label">Encerradas</div><div class="kpi-value" style="color:var(--text-dim)">${kpis.encerradas}</div></div>
+    </div>
+
+    <!-- Gráficos linha 1 -->
+    <div class="charts-row c3" style="margin-bottom:1.25rem">
+      <div class="chart-card">
+        <div class="chart-title">Distribuição por Esfera</div>
+        <div class="chart-wrap" style="height:180px"><canvas id="chartEsfera"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Distribuição por Natureza</div>
+        <div class="chart-wrap" style="height:180px"><canvas id="chartNatureza"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Creditado × Comprometido por Ano</div>
+        <div class="chart-wrap" style="height:180px"><canvas id="chartAno"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Heatmap -->
+    <div class="tbl-card" style="margin-bottom:1.25rem">
+      <div class="tbl-header"><span class="tbl-title">Mapa de Calor — Contas × Execução</span></div>
+      <div style="padding:.75rem 1.25rem;overflow-x:auto" id="heatmapContainer"></div>
+    </div>
+
+    <!-- Gantt -->
+    <div class="tbl-card">
+      <div class="tbl-header"><span class="tbl-title">Timeline de Vigências</span></div>
+      <div style="padding:.75rem 1.25rem" id="ganttContainer"></div>
+    </div>
+  `;
+
+  // Chart esfera
+  const esferaLabels = Object.keys(porEsfera);
+  const esferaVals   = esferaLabels.map(k => porEsfera[k]);
+  chartInstances['geral-esfera'] = new Chart(document.getElementById('chartEsfera'), {
+    type: 'doughnut',
+    data: { labels: esferaLabels, datasets: [{ data: esferaVals, backgroundColor:['#c9a84c','#5b9bd5','#4caf82','#e09a3a'], borderWidth:0 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, padding:8 } } } }
+  });
+
+  // Chart natureza
+  const natLabels = Object.keys(porNatureza);
+  const natVals   = natLabels.map(k => porNatureza[k]);
+  chartInstances['geral-natureza'] = new Chart(document.getElementById('chartNatureza'), {
+    type: 'doughnut',
+    data: { labels: natLabels, datasets: [{ data: natVals, backgroundColor:['#b08df5','#6dd6a8','#f5c56d'], borderWidth:0 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, padding:8 } } } }
+  });
+
+  // Chart por ano
+  const anoLabels = Object.keys(porAno).sort();
+  chartInstances['geral-ano'] = new Chart(document.getElementById('chartAno'), {
+    type: 'bar',
+    data: {
+      labels: anoLabels,
+      datasets: [
+        { label:'Creditado', data: anoLabels.map(a => porAno[a].creditado), backgroundColor:'rgba(201,168,76,.6)', borderRadius:4 },
+        { label:'Comprometido', data: anoLabels.map(a => porAno[a].comprometido), backgroundColor:'rgba(224,154,58,.4)', borderRadius:4 },
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ boxWidth:10 } } }, scales:{ y:{ ticks:{ callback: v => abrev(v) } } } }
+  });
+
+  // Heatmap
+  const hmEl = document.getElementById('heatmapContainer');
+  const cols = ['Conta','Execução %','Vigência','Notas Venc.','OCs'];
+  hmEl.innerHTML = `
+    <div style="display:grid;grid-template-columns:120px repeat(4,1fr);gap:3px;min-width:500px">
+      ${['Conta','Execução %','Vigência','Notas Venc.','OCs'].map(c => `<div class="hm-header">${c}</div>`).join('')}
+      ${heatmap.slice(0,20).map(h => {
+        const execCor = h.execucao >= 80 ? '#4caf82' : h.execucao >= 50 ? '#e09a3a' : '#5b9bd5';
+        const vigCor  = { ok:'#4caf82', alerta:'#e09a3a', critico:'#e05a5a', vencida:'#ff4444', nd:'#8fa3b8' }[h.vig_status] || '#8fa3b8';
+        const notaCor = h.notas_vencidas > 0 ? '#ff4444' : '#4caf82';
+        return `
+          <div class="hm-cell" style="background:rgba(201,168,76,.06);color:var(--cream);font-weight:500">${h.conta}</div>
+          <div class="hm-cell" style="background:${execCor}22;color:${execCor}">${h.execucao}%</div>
+          <div class="hm-cell" style="background:${vigCor}22;color:${vigCor}">${h.vig_status === 'nd' ? '—' : h.diff_vig + 'd'}</div>
+          <div class="hm-cell" style="background:${notaCor}22;color:${notaCor}">${h.notas_vencidas}</div>
+          <div class="hm-cell" style="background:rgba(91,155,213,.12);color:var(--azul)">${h.ocs_total}</div>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  // Gantt
+  const ganttEl = document.getElementById('ganttContainer');
+  ganttEl.innerHTML = `<div class="gantt-wrap">` + gantt.slice(0,20).map(g => {
+    const cor = { ok:'#4caf82', alerta:'#e09a3a', critico:'#e05a5a', encerrada:'#8fa3b8' }[g.status] || '#4caf82';
+    return `<div class="gantt-row">
+      <div class="gantt-label" title="${g.conta}">${g.conta}</div>
+      <div class="gantt-bar-wrap">
+        <div class="gantt-bar" style="width:${g.progresso}%;background:${cor}88">
+          ${g.progresso > 15 ? `<span class="gantt-pct">${g.progresso}%</span>` : ''}
+        </div>
+      </div>
+      <div class="gantt-dates">${g.termino ? new Date(g.termino).toLocaleDateString('pt-BR') : '—'}</div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+// ══════════════════════════════════════════════════
+// RENDER BI COMPRAS
+// ══════════════════════════════════════════════════
+function renderCompras(d) {
+  const el = document.getElementById('compras-body');
+  const cats = { custeio:'CUSTEIO', investimento:'INVESTIMENTO', contrato:'CONTRATO' };
+
+  el.innerHTML = `
+    <div class="sub-content active" id="sub-custeio">${renderCatBI(d, 'CUSTEIO', 'custeio')}</div>
+    <div class="sub-content" id="sub-investimento">${renderCatBI(d, 'INVESTIMENTO', 'investimento')}</div>
+    <div class="sub-content" id="sub-contrato">${renderCatBI(d, 'CONTRATO', 'contrato')}</div>
+  `;
+
+  // Criar charts para todas as categorias
+  ['CUSTEIO','INVESTIMENTO','CONTRATO'].forEach(cat => {
+    const key = cat.toLowerCase();
+    const dados = d.porCategoria?.[cat];
+    if (!dados) return;
+
+    // Chart evolução mensal
+    const canvasMensal = document.getElementById('chart-mensal-' + key);
+    if (canvasMensal && dados.mensal?.length > 0) {
+      chartInstances['compras-mensal-' + key] = new Chart(canvasMensal, {
+        type: 'bar',
+        data: {
+          labels: dados.mensal.map(m => m.mes),
+          datasets: [{ label:'Valor (R$)', data: dados.mensal.map(m => m.valor), backgroundColor:'rgba(201,168,76,.5)', borderRadius:4 }]
+        },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ ticks:{ callback: v => abrev(v) } } } }
+      });
+    }
+
+    // Chart por comprador
+    const canvasComp = document.getElementById('chart-comprador-' + key);
+    if (canvasComp && dados.porComprador?.length > 0) {
+      const top5 = dados.porComprador.slice(0,5);
+      chartInstances['compras-comp-' + key] = new Chart(canvasComp, {
+        type: 'bar',
+        data: {
+          labels: top5.map(c => c.nome.split(' ')[0]),
+          datasets: [
+            { label:'Total', data: top5.map(c => c.total), backgroundColor:'rgba(201,168,76,.5)', borderRadius:4 },
+          ]
+        },
+        options: { responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ callback: v => abrev(v) } } } }
+      });
+    }
+  });
+}
+
+function renderCatBI(d, cat, key) {
+  const dados = d.porCategoria?.[cat];
+  if (!dados) return `<div class="loading-overlay"><p>Sem dados para ${cat}</p></div>`;
+
+  const corCat = { CUSTEIO:'#b08df5', INVESTIMENTO:'#6dd6a8', CONTRATO:'#f5c56d' }[cat] || '#c9a84c';
+
+  return `
+    <div class="kpi-grid cols3" style="margin-bottom:1.25rem">
+      <div class="kpi"><div class="kpi-label">Total ${cat}</div><div class="kpi-value" style="color:${corCat}">${fmt(dados.total||0)}</div></div>
+      <div class="kpi"><div class="kpi-label">Qtd de OCs</div><div class="kpi-value">${dados.qtd||0}</div></div>
+      <div class="kpi"><div class="kpi-label">Contas com ${cat}</div><div class="kpi-value">${dados.porConta?.length||0}</div></div>
+    </div>
+
+    <div class="charts-row c2" style="margin-bottom:1.25rem">
+      <div class="chart-card">
+        <div class="chart-title">Evolução Mensal de OCs</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="chart-mensal-${key}"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Top Compradores / Gestores</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="chart-comprador-${key}"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Execução por conta -->
+    <div class="tbl-card" style="margin-bottom:1.25rem">
+      <div class="tbl-header"><span class="tbl-title">Execução por Conta — ${cat}</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Conta</th><th>Teto Gestor</th><th>Comprometido</th><th>Pago</th><th>% Execução</th><th>Disponível</th></tr></thead>
+          <tbody>
+            ${(dados.porConta||[]).map(c => {
+              const pct = c.teto > 0 ? Math.min(Math.round((c.comprometido/c.teto)*100),100) : 0;
+              const cor = pct >= 100 ? 'var(--err)' : pct >= 80 ? 'var(--warn)' : 'var(--ok)';
+              const disponivel = c.teto - c.comprometido;
+              return `<tr>
+                <td><strong style="color:var(--cream)">${c.conta}</strong></td>
+                <td>${fmt(c.teto)}</td>
+                <td style="color:var(--warn)">${fmt(c.comprometido)}</td>
+                <td style="color:var(--ok)">${fmt(c.pago)}</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:.5rem">
+                    <div class="score-bar" style="width:80px"><div class="score-fill" style="width:${pct}%;background:${cor}"></div></div>
+                    <span style="color:${cor};font-size:.72rem">${pct}%</span>
+                  </div>
+                </td>
+                <td style="color:${disponivel<0?'var(--err)':'var(--text)'}">${fmt(disponivel)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Top fornecedores -->
+    <div class="tbl-card">
+      <div class="tbl-header"><span class="tbl-title">Top Fornecedores — ${cat}</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Fornecedor</th><th>Valor Total</th></tr></thead>
+          <tbody>
+            ${(dados.topFornecedores||[]).map(f => `<tr>
+              <td>${f.nome}</td>
+              <td style="color:var(--gold)">${fmt(f.valor)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════════
+// RENDER BI FINANCEIRO
+// ══════════════════════════════════════════════════
+function renderFinanceiro(d) {
+  const { kpis, fluxoMensal, rendMensal, distribuicao, topContasAPagar } = d;
+  const el = document.getElementById('financeiro-body');
+
+  el.innerHTML = `
+    <div class="kpi-grid cols5" style="margin-bottom:1.25rem">
+      <div class="kpi"><div class="kpi-label">Total A Pagar</div><div class="kpi-value" style="color:var(--warn)">${fmt(kpis.totalAPagar)}</div></div>
+      <div class="kpi"><div class="kpi-label">Qtd A Pagar</div><div class="kpi-value" style="color:var(--warn)">${kpis.qtdAPagar}</div></div>
+      <div class="kpi"><div class="kpi-label">Total Pago</div><div class="kpi-value" style="color:var(--ok)">${fmt(kpis.totalPago)}</div></div>
+      <div class="kpi"><div class="kpi-label">Notas Vencidas</div><div class="kpi-value" style="color:var(--crit)">${kpis.qtdVencidas}</div></div>
+      <div class="kpi"><div class="kpi-label">Valor Vencido</div><div class="kpi-value" style="color:var(--crit)">${fmt(kpis.totalVencido)}</div></div>
+    </div>
+
+    <div class="charts-row c2" style="margin-bottom:1.25rem">
+      <div class="chart-card">
+        <div class="chart-title">Fluxo Mensal — Pago × A Pagar</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="chartFluxo"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Status das Notas</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="chartNotaStatus"></canvas></div>
+      </div>
+    </div>
+
+    <div class="charts-row c2" style="margin-bottom:1.25rem">
+      <div class="chart-card">
+        <div class="chart-title">Rendimentos Mensais</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="chartRend"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Top Contas A Pagar</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="chartTopContas"></canvas></div>
+      </div>
+    </div>
+  `;
+
+  // Fluxo mensal
+  if (fluxoMensal?.length > 0) {
+    chartInstances['fin-fluxo'] = new Chart(document.getElementById('chartFluxo'), {
+      type:'bar',
+      data:{
+        labels: fluxoMensal.map(m => m.mes),
+        datasets:[
+          { label:'Pago', data: fluxoMensal.map(m => m.pago), backgroundColor:'rgba(76,175,130,.5)', borderRadius:4 },
+          { label:'A Pagar', data: fluxoMensal.map(m => m.apagar), backgroundColor:'rgba(224,154,58,.4)', borderRadius:4 },
+        ]
+      },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ boxWidth:10 } } }, scales:{ y:{ ticks:{ callback: v => abrev(v) } } } }
+    });
+  }
+
+  // Status notas
+  chartInstances['fin-status'] = new Chart(document.getElementById('chartNotaStatus'), {
+    type:'doughnut',
+    data:{
+      labels:['A Pagar','Pagas','Vencidas'],
+      datasets:[{ data:[distribuicao['A Pagar']||0, distribuicao['Pagas']||0, distribuicao['Vencidas']||0],
+        backgroundColor:['#e09a3a','#4caf82','#ff4444'], borderWidth:0 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, padding:8 } } } }
+  });
+
+  // Rendimentos
+  if (rendMensal?.length > 0) {
+    chartInstances['fin-rend'] = new Chart(document.getElementById('chartRend'), {
+      type:'line',
+      data:{
+        labels: rendMensal.map(m => m.mes),
+        datasets:[{ label:'Rendimento', data: rendMensal.map(m => m.valor), borderColor:'#c9a84c', backgroundColor:'rgba(201,168,76,.1)', fill:true, tension:.3, pointRadius:3 }]
+      },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ ticks:{ callback: v => abrev(v) } } } }
+    });
+  }
+
+  // Top contas
+  if (topContasAPagar?.length > 0) {
+    chartInstances['fin-topcontas'] = new Chart(document.getElementById('chartTopContas'), {
+      type:'bar',
+      data:{
+        labels: topContasAPagar.map(c => c.conta),
+        datasets:[{ data: topContasAPagar.map(c => c.valor), backgroundColor:'rgba(224,90,90,.45)', borderRadius:4 }]
+      },
+      options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ callback: v => abrev(v) } } } }
+    });
+  }
+}
+
+// ══════════════════════════════════════════════════
+// RENDER BI CONTABILIDADE
+// ══════════════════════════════════════════════════
+function renderContabilidade(d) {
+  const { statusPrestacao, porRegra, proximas, saldosBaixos, vigencias, saldoEvol, resumo } = d;
+  const el = document.getElementById('contabilidade-body');
+
+  el.innerHTML = `
+    <div class="kpi-grid cols5" style="margin-bottom:1.25rem">
+      <div class="kpi"><div class="kpi-label">Prestações Vencidas</div><div class="kpi-value" style="color:var(--crit)">${resumo.vencidas||0}</div></div>
+      <div class="kpi"><div class="kpi-label">Vencem em 15 dias</div><div class="kpi-value" style="color:var(--err)">${resumo.em15dias||0}</div></div>
+      <div class="kpi"><div class="kpi-label">Saldos ≤ R$150</div><div class="kpi-value" style="color:var(--azul)">${resumo.saldosBaixos||0}</div></div>
+      <div class="kpi"><div class="kpi-label">Vigências Críticas</div><div class="kpi-value" style="color:var(--err)">${resumo.vigCriticas||0}</div></div>
+      <div class="kpi"><div class="kpi-label">Total de Contas</div><div class="kpi-value">${resumo.total||0}</div></div>
+    </div>
+
+    <div class="charts-row c2" style="margin-bottom:1.25rem">
+      <div class="chart-card">
+        <div class="chart-title">Status de Prestações</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="chartPrestStatus"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Contas por Regra de Prestação</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="chartPorRegra"></canvas></div>
+      </div>
+    </div>
+
+    <div class="charts-row c2" style="margin-bottom:1.25rem">
+      <!-- Próximas prestações -->
+      <div class="tbl-card">
+        <div class="tbl-header"><span class="tbl-title">Próximas Prestações (90 dias)</span></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Conta</th><th>Data</th><th>Dias</th></tr></thead>
+            <tbody>
+              ${(proximas||[]).slice(0,10).map(p => `<tr>
+                <td><strong style="color:var(--cream)">${p.conta}</strong></td>
+                <td>${p.data ? new Date(p.data).toLocaleDateString('pt-BR') : '—'}</td>
+                <td><span style="color:${p.sevColor};font-weight:500">${p.diff < 0 ? Math.abs(p.diff) + 'd atraso' : p.diff + 'd'}</span></td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Saldos baixos + Vigências críticas -->
+      <div style="display:flex;flex-direction:column;gap:.875rem">
+        <div class="tbl-card">
+          <div class="tbl-header"><span class="tbl-title">💰 Saldos ≤ R$150</span></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Conta</th><th>Saldo</th></tr></thead>
+              <tbody>
+                ${(saldosBaixos||[]).map(s => `<tr>
+                  <td><strong style="color:var(--cream)">${s.conta}</strong></td>
+                  <td style="color:var(--azul);font-weight:500">${fmt(s.saldo)}</td>
+                </tr>`).join('') || '<tr><td colspan="2" style="text-align:center;color:var(--text-dim);padding:1rem">Nenhum</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="tbl-card">
+          <div class="tbl-header"><span class="tbl-title">📅 Vigências Próximas</span></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Conta</th><th>Vence em</th></tr></thead>
+              <tbody>
+                ${(vigencias||[]).slice(0,5).map(v => `<tr>
+                  <td><strong style="color:var(--cream)">${v.conta}</strong></td>
+                  <td style="color:${v.diff<=30?'var(--err)':'var(--warn)'};">${v.diff}d</td>
+                </tr>`).join('') || '<tr><td colspan="2" style="text-align:center;color:var(--text-dim);padding:1rem">Nenhuma</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Charts
+  chartInstances['cont-prest'] = new Chart(document.getElementById('chartPrestStatus'), {
+    type:'doughnut',
+    data:{
+      labels:['Prestou','Não Prestou','Pendente'],
+      datasets:[{ data:[statusPrestacao['Sim']||0, statusPrestacao['Não']||0, statusPrestacao['Pendente']||0],
+        backgroundColor:['#4caf82','#e05a5a','#e09a3a'], borderWidth:0 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, padding:8 } } } }
+  });
+
+  const regraLabels = Object.keys(porRegra);
+  chartInstances['cont-regra'] = new Chart(document.getElementById('chartPorRegra'), {
+    type:'bar',
+    data:{
+      labels: regraLabels.map(r => r.length > 15 ? r.slice(0,12)+'...' : r),
+      datasets:[{ data: regraLabels.map(k => porRegra[k]), backgroundColor:'rgba(201,168,76,.5)', borderRadius:4 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{ legend:{ display:false } } }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// RENDER MONITORAMENTO
+// ══════════════════════════════════════════════════
+function renderMonitoramento(d) {
+  const { scoreContas, inconsistencias, evolucaoMensal, resumo } = d;
+  const el = document.getElementById('monitoramento-body');
+
+  // Atualizar badge
+  document.getElementById('badgeInconsist').textContent = resumo.total_inconsist || 0;
+
+  el.innerHTML = `
+    <!-- Score médio + KPIs de risco -->
+    <div class="kpi-grid cols5" style="margin-bottom:1.25rem">
+      <div class="kpi" style="grid-column:span 1">
+        <div class="kpi-label">Score Médio</div>
+        <div class="kpi-value" style="color:${resumo.score_medio>=80?'var(--ok)':resumo.score_medio>=60?'var(--warn)':'var(--err)'};font-size:2.5rem">${resumo.score_medio}</div>
+        <div class="score-bar" style="margin-top:.5rem"><div class="score-fill" style="width:${resumo.score_medio}%;background:${resumo.score_medio>=80?'#4caf82':resumo.score_medio>=60?'#e09a3a':'#e05a5a'}"></div></div>
+      </div>
+      <div class="kpi"><div class="kpi-label">🚨 Emergência</div><div class="kpi-value" style="color:var(--crit)">${resumo.emergencia||0}</div><div class="kpi-sub">Score &lt; 40</div></div>
+      <div class="kpi"><div class="kpi-label">🔴 Crítico</div><div class="kpi-value" style="color:var(--err)">${resumo.critico||0}</div><div class="kpi-sub">Score 40–59</div></div>
+      <div class="kpi"><div class="kpi-label">⚠️ Atenção</div><div class="kpi-value" style="color:var(--warn)">${resumo.atencao||0}</div><div class="kpi-sub">Score 60–79</div></div>
+      <div class="kpi"><div class="kpi-label">✅ Saudável</div><div class="kpi-value" style="color:var(--ok)">${resumo.saudavel||0}</div><div class="kpi-sub">Score ≥ 80</div></div>
+    </div>
+
+    <div class="charts-row c2" style="margin-bottom:1.25rem">
+      <!-- Evolução mensal -->
+      <div class="chart-card">
+        <div class="chart-title">Evolução Mensal — Saldo × Pagamentos × Rendimentos</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="chartEvolucao"></canvas></div>
+      </div>
+      <!-- Distribuição de scores -->
+      <div class="chart-card">
+        <div class="chart-title">Distribuição de Saúde das Contas</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="chartScoreDist"></canvas></div>
+      </div>
+    </div>
+
+    <div class="charts-row c2" style="margin-bottom:1.25rem">
+      <!-- Ranking de contas -->
+      <div class="tbl-card">
+        <div class="tbl-header"><span class="tbl-title">Ranking de Saúde das Contas (piores primeiro)</span></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Conta</th><th>Score</th><th>Nível</th><th>Problemas</th><th>Comprometido</th></tr></thead>
+            <tbody>
+              ${(scoreContas||[]).slice(0,15).map((c,i) => `<tr>
+                <td style="color:var(--text-dim)">${i+1}</td>
+                <td><strong style="color:var(--cream)">${c.conta}</strong><div style="font-size:.65rem;color:var(--text-dim)">${c.ano} · ${c.esfera}</div></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:.4rem">
+                    <span style="color:${c.cor};font-weight:600;font-size:.9rem">${c.score}</span>
+                  </div>
+                  <div class="score-bar" style="width:60px"><div class="score-fill" style="width:${c.score}%;background:${c.cor}"></div></div>
+                </td>
+                <td><span class="pill ${c.score>=80?'pill-ok':c.score>=60?'pill-warn':'pill-crit'}">${c.nivel}</span></td>
+                <td style="color:var(--text-dim)">${c.problemas}</td>
+                <td>${fmt(c.comprometido)}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Feed de inconsistências -->
+      <div class="tbl-card">
+        <div class="tbl-header">
+          <span class="tbl-title">Feed de Inconsistências</span>
+          <span style="font-size:.7rem;color:var(--text-dim)">${(inconsistencias||[]).length} encontradas</span>
+        </div>
+        <div style="max-height:450px;overflow-y:auto">
+          ${(inconsistencias||[]).length === 0
+            ? '<div class="loading-overlay"><p style="color:var(--ok)">✅ Nenhuma inconsistência detectada</p></div>'
+            : (inconsistencias||[]).map(inc => {
+                const sevCores = { critico:'#ff4444', vermelho:'#e05a5a', alerta:'#e09a3a', info:'#5b9bd5' };
+                const cor = sevCores[inc.sev] || '#8fa3b8';
+                return `<div class="feed-item">
+                  <div class="feed-dot" style="background:${cor}"></div>
+                  <div>
+                    <div class="feed-conta">${inc.conta}</div>
+                    <div class="feed-msg">${inc.msg}</div>
+                    <div class="feed-tipo">${inc.tipo}</div>
+                  </div>
+                </div>`;
+              }).join('')
+          }
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Chart evolução mensal
+  if (evolucaoMensal?.length > 0) {
+    chartInstances['mon-evol'] = new Chart(document.getElementById('chartEvolucao'), {
+      type:'line',
+      data:{
+        labels: evolucaoMensal.map(m => m.mes),
+        datasets:[
+          { label:'Saldo', data: evolucaoMensal.map(m => m.saldo), borderColor:'#c9a84c', backgroundColor:'rgba(201,168,76,.08)', fill:true, tension:.3, pointRadius:3 },
+          { label:'Pagamentos', data: evolucaoMensal.map(m => m.pagamento), borderColor:'#e05a5a', backgroundColor:'rgba(224,90,90,.06)', fill:true, tension:.3, pointRadius:3 },
+          { label:'Rendimentos', data: evolucaoMensal.map(m => m.rendimento), borderColor:'#4caf82', backgroundColor:'rgba(76,175,130,.06)', fill:true, tension:.3, pointRadius:3 },
+        ]
+      },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ boxWidth:10 } } }, scales:{ y:{ ticks:{ callback: v => abrev(v) } } } }
+    });
+  }
+
+  // Chart distribuição de scores
+  chartInstances['mon-score'] = new Chart(document.getElementById('chartScoreDist'), {
+    type:'doughnut',
+    data:{
+      labels:['Emergência (<40)','Crítico (40-59)','Atenção (60-79)','Saudável (≥80)'],
+      datasets:[{ data:[resumo.emergencia||0, resumo.critico||0, resumo.atencao||0, resumo.saudavel||0],
+        backgroundColor:['#ff4444','#e05a5a','#e09a3a','#4caf82'], borderWidth:0 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, padding:6, font:{ size:10 } } } } }
+  });
+}
+
+// ── HELPERS ──
+function fmt(n) { return (n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+function abrev(n) {
+  if (n >= 1e6) return 'R$' + (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return 'R$' + (n/1e3).toFixed(0) + 'k';
+  return 'R$' + n;
+}
+
+let toastTimer;
+function showToast(msg, tipo='sucesso') {
+  const el = document.getElementById('toast');
+  el.className = 'toast ' + tipo;
+  el.innerHTML = `<span>${msg}</span>`;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+async function logout() {
+  if (!confirm('Sair do sistema?')) return;
+  try { await api('logout'); } catch(e) {}
+  localStorage.clear();
+  window.location.href = 'index.html';
+}
+</script>
+</body>
+</html>
