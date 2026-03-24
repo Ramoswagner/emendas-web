@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compras — Gestão de Emendas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --navy:#07152a;--navy-mid:#0d2240;--navy-card:rgba(13,34,64,.75);
+    --gold:#c9a84c;--gold-light:#e8c96d;--gold-dim:#8a6f2e;
+    --cream:#f5f0e8;--text:#e8e4dc;--text-dim:#8fa3b8;
+    --border:rgba(201,168,76,.2);
+    --ok:#4caf82;--warn:#e09a3a;--err:#e05a5a;
+    --sidebar-w:240px;
+  }
+  html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);overflow-x:hidden}
+  .bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 10% 30%,rgba(22,53,97,.5) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 90% 80%,rgba(13,34,64,.7) 0%,transparent 55%),#07152a}
+  .top-bar{position:fixed;top:0;left:0;right:0;height:3px;z-index:100;background:linear-gradient(90deg,transparent,var(--gold) 40%,var(--gold-light) 60%,transparent)}
+
+  .layout{position:relative;z-index:1;display:flex;min-height:100vh;padding-top:3px}
+
+  /* SIDEBAR */
+  .sidebar{width:var(--sidebar-w);min-height:100vh;background:rgba(7,21,42,.92);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:3px;bottom:0;backdrop-filter:blur(20px);z-index:50}
+  .sidebar-header{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid var(--border)}
+  .logo-row{display:flex;align-items:center;gap:.65rem;margin-bottom:.4rem}
+  .logo-icon{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:rgba(201,168,76,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .logo-text{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:500;color:var(--cream);line-height:1.2}
+  .logo-sub{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dim)}
+  .nav{flex:1;padding:.75rem 0;overflow-y:auto}
+  .nav-label{padding:.4rem 1.25rem .2rem;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-dim);font-weight:500}
+  .nav-item{display:flex;align-items:center;gap:.65rem;padding:.6rem 1.25rem;color:var(--text-dim);cursor:pointer;transition:all .2s;font-size:.82rem;border-left:2px solid transparent;text-decoration:none}
+  .nav-item:hover{color:var(--text);background:rgba(201,168,76,.05)}
+  .nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,168,76,.08)}
+  .nav-item.hidden{display:none}
+  .sidebar-footer{padding:.875rem 1.25rem;border-top:1px solid var(--border)}
+  .user-info{display:flex;align-items:center;gap:.65rem;margin-bottom:.65rem}
+  .user-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dim),var(--gold));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:500;color:var(--navy);flex-shrink:0}
+  .user-name{font-size:.8rem;color:var(--text);font-weight:500}
+  .user-role{font-size:.67rem;color:var(--text-dim)}
+  .btn-logout{width:100%;padding:.45rem;background:rgba(224,90,90,.08);border:1px solid rgba(224,90,90,.2);border-radius:6px;color:#f08080;font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:all .2s;font-family:inherit}
+  .btn-logout:hover{background:rgba(224,90,90,.15)}
+
+  /* MAIN */
+  .main{margin-left:var(--sidebar-w);flex:1;padding:1.75rem 2rem;animation:fadeIn .5s .1s both}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  /* TABS */
+  .tabs-bar{display:flex;gap:0;margin-bottom:1.75rem;border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .tab-btn{padding:.7rem 1.35rem;font-size:.8rem;font-weight:500;color:var(--text-dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;font-family:inherit;display:flex;align-items:center;gap:.45rem}
+  .tab-btn:hover{color:var(--text)}
+  .tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+  .tab-btn.hidden{display:none}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+
+  /* PANEL */
+  .panel{background:var(--navy-card);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(16px);overflow:hidden;margin-bottom:1.25rem}
+  .panel-header{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+  .panel-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:500;color:var(--cream)}
+  .panel-body{padding:1.25rem 1.5rem}
+
+  /* SALDO WIDGET */
+  .saldo-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.25rem}
+  .saldo-card{background:rgba(7,21,42,.5);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+  .saldo-label{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:.35rem}
+  .saldo-valor{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:500;color:var(--cream)}
+  .saldo-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.1);margin-top:.5rem;overflow:hidden}
+  .saldo-bar-fill{height:100%;border-radius:2px;transition:width .5s ease}
+  .fill-ok{background:var(--ok)}
+  .fill-warn{background:var(--warn)}
+  .fill-err{background:var(--err)}
+
+  .alerta-saldo{display:none;padding:.65rem .9rem;border-radius:8px;font-size:.82rem;margin-bottom:1rem;display:flex;align-items:flex-start;gap:.5rem}
+  .alerta-saldo.warn{background:rgba(224,154,58,.12);border:1px solid rgba(224,154,58,.3);color:#f5c56d}
+  .alerta-saldo.err{background:rgba(224,90,90,.12);border:1px solid rgba(224,90,90,.3);color:#f08080}
+  .alerta-saldo.hidden{display:none!important}
+
+  /* FORM */
+  .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.875rem}
+  .form-grid.col2{grid-template-columns:repeat(2,1fr)}
+  .form-grid.col1{grid-template-columns:1fr}
+  .span2{grid-column:span 2}
+  .span3{grid-column:span 3}
+  .field{display:flex;flex-direction:column;gap:.3rem}
+  .field label{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim);font-weight:500}
+  .field input,.field select,.field textarea{padding:.62rem .875rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s,box-shadow .2s;width:100%}
+  .field input:focus,.field select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.08)}
+  .field input::placeholder{color:rgba(143,163,184,.4)}
+  .field input[readonly]{background:rgba(7,21,42,.4);color:var(--text-dim);cursor:default}
+  .field select option{background:#0d2240}
+  .field-hint{font-size:.68rem;color:var(--text-dim);margin-top:.2rem}
+
+  /* Vencimentos */
+  .vencimentos-wrap{margin-top:1rem}
+  .venc-label{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between}
+  .venc-row{display:grid;grid-template-columns:auto 1fr 1fr auto;gap:.75rem;align-items:center;margin-bottom:.5rem;padding:.5rem .75rem;background:rgba(7,21,42,.4);border:1px solid rgba(201,168,76,.1);border-radius:8px}
+  .venc-num{font-size:.72rem;color:var(--text-dim);font-weight:500;white-space:nowrap}
+  .btn-add-venc{padding:.35rem .75rem;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);border-radius:6px;color:var(--gold);font-size:.75rem;cursor:pointer;font-family:inherit;transition:all .2s}
+  .btn-add-venc:hover{background:rgba(201,168,76,.18)}
+  .btn-rm-venc{width:24px;height:24px;border-radius:5px;background:rgba(224,90,90,.08);border:1px solid rgba(224,90,90,.2);color:#f08080;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:all .15s}
+  .btn-rm-venc:hover{background:rgba(224,90,90,.18)}
+
+  /* BOTÕES */
+  .btn-row{display:flex;gap:.75rem;margin-top:1.1rem;flex-wrap:wrap}
+  .btn-primary{padding:.62rem 1.4rem;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border:none;border-radius:8px;color:var(--navy);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:.45rem;transition:all .2s}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(201,168,76,.25)}
+  .btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
+  .btn-secondary{padding:.62rem 1.2rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text-dim);font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:pointer;transition:all .2s}
+  .btn-secondary:hover{border-color:rgba(201,168,76,.4);color:var(--text)}
+  .btn-danger{padding:.62rem 1.2rem;background:rgba(224,90,90,.1);border:1px solid rgba(224,90,90,.25);border-radius:8px;color:#f08080;font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:pointer;transition:all .2s}
+
+  .spinner-sm{display:inline-block;width:14px;height:14px;border:2px solid rgba(7,21,42,.3);border-top-color:#07152a;border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* TABELA */
+  .tbl-controls{padding:.875rem 1.5rem;border-bottom:1px solid var(--border);display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
+  .search-wrap{position:relative}
+  .search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none}
+  input.search{padding:.5rem 1rem .5rem 2.25rem;background:rgba(7,21,42,.6);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.8rem;outline:none;width:220px;transition:border-color .2s}
+  input.search:focus{border-color:var(--gold)}
+  input.search::placeholder{color:rgba(143,163,184,.5)}
+  select.filter{padding:.5rem .875rem;background:rgba(7,21,42,.6);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.8rem;outline:none}
+  select.filter option{background:#0d2240}
+  .tbl-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:.81rem}
+  thead tr{background:rgba(7,21,42,.5)}
+  th{padding:.6rem 1rem;text-align:left;font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim);font-weight:500;white-space:nowrap;border-bottom:1px solid var(--border)}
+  td{padding:.7rem 1rem;color:var(--text);border-bottom:1px solid rgba(201,168,76,.06);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tbody tr{transition:background .15s}
+  tbody tr:hover{background:rgba(201,168,76,.04)}
+  .empty-state,.loading-state{text-align:center;padding:2.5rem 1rem;color:var(--text-dim);font-size:.82rem}
+
+  .pill{display:inline-flex;align-items:center;padding:.17rem .55rem;border-radius:20px;font-size:.68rem;font-weight:500;white-space:nowrap}
+  .pill-c{background:rgba(60,30,107,.2);color:#b08df5;border:1px solid rgba(60,30,107,.3)}
+  .pill-i{background:rgba(30,107,60,.2);color:#6dd6a8;border:1px solid rgba(30,107,60,.3)}
+  .pill-ct{background:rgba(123,63,0,.2);color:#f5c56d;border:1px solid rgba(123,63,0,.3)}
+  .pill-ab{background:rgba(76,175,130,.1);color:var(--ok);border:1px solid rgba(76,175,130,.2)}
+  .pill-pg{background:rgba(143,163,184,.1);color:var(--text-dim);border:1px solid rgba(143,163,184,.15)}
+
+  .btn-icon{width:27px;height:27px;border-radius:6px;background:transparent;border:1px solid transparent;color:var(--text-dim);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s}
+  .btn-icon:hover{background:rgba(201,168,76,.1);color:var(--gold);border-color:var(--border)}
+  .btn-icon.danger:hover{background:rgba(224,90,90,.1);color:#f08080;border-color:rgba(224,90,90,.3)}
+
+  /* REGRAS */
+  .regra-row{display:grid;grid-template-columns:1fr auto 1fr auto;gap:.875rem;align-items:end;padding:.875rem;background:rgba(7,21,42,.4);border:1px solid rgba(201,168,76,.1);border-radius:10px;margin-bottom:.75rem}
+
+  /* Toast */
+  .toast{position:fixed;bottom:1.75rem;right:1.75rem;z-index:300;padding:.8rem 1.1rem;border-radius:10px;font-size:.83rem;display:flex;align-items:center;gap:.55rem;transform:translateY(20px);opacity:0;transition:all .3s cubic-bezier(.23,1,.32,1);max-width:320px}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.sucesso{background:rgba(76,175,130,.15);border:1px solid rgba(76,175,130,.3);color:#6dd6a8}
+  .toast.erro{background:rgba(224,90,90,.15);border:1px solid rgba(224,90,90,.3);color:#f08080}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<div class="bg"></div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-row">
+        <div class="logo-icon">
+          <svg width="16" height="16" viewBox="0 0 32 32" fill="none"><path d="M4 20C4 20 7 14 16 14C25 14 28 18 28 18C28 18 25 24 20 25C15 26 10 24 7 22L4 20Z" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20L2 17C2 17 4 12 9 11" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/><circle cx="22" cy="18" r="1.5" fill="#c9a84c" opacity=".8"/></svg>
+        </div>
+        <div><div class="logo-text">Gestão de Emendas</div><div class="logo-sub">Hospital da Baleia</div></div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-label">Compras</div>
+      <a class="nav-item active" onclick="ativarTab('cadastro')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Cadastrar OC
+      </a>
+      <a class="nav-item" onclick="ativarTab('minhas')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Minhas OCs
+      </a>
+      <a class="nav-item hidden" id="nav-regras" onclick="ativarTab('regras')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Regras de Verba
+      </a>
+      <a class="nav-item hidden" id="nav-consolidado" onclick="ativarTab('consolidado')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        Consolidado
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="sidebarAvatar">?</div>
+        <div><div class="user-name" id="sidebarNome">—</div><div class="user-role" id="sidebarCargo">Compras</div></div>
+      </div>
+      <button class="btn-logout" onclick="logout()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sair
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="tabs-bar">
+      <button class="tab-btn active" id="tab-cadastro" onclick="ativarTab('cadastro')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Cadastrar OC
+      </button>
+      <button class="tab-btn" id="tab-minhas" onclick="ativarTab('minhas')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+        Minhas OCs
+      </button>
+      <button class="tab-btn hidden" id="tab-regras" onclick="ativarTab('regras')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Regras de Verba
+      </button>
+      <button class="tab-btn hidden" id="tab-consolidado" onclick="ativarTab('consolidado')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        Consolidado
+      </button>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- ABA 1: CADASTRAR OC             -->
+    <!-- ════════════════════════════════ -->
+    <div class="tab-content active" id="content-cadastro">
+
+      <!-- Saldo disponível -->
+      <div class="saldo-row" id="saldoRow" style="display:none">
+        <div class="saldo-card">
+          <div class="saldo-label">Teto da Categoria</div>
+          <div class="saldo-valor" id="saldoTeto">—</div>
+        </div>
+        <div class="saldo-card">
+          <div class="saldo-label">Já Comprometido</div>
+          <div class="saldo-valor" id="saldoConsumido">—</div>
+          <div class="saldo-bar"><div class="saldo-bar-fill" id="saldoBarFill" style="width:0%"></div></div>
+        </div>
+        <div class="saldo-card">
+          <div class="saldo-label">Disponível</div>
+          <div class="saldo-valor" id="saldoDisponivel">—</div>
+        </div>
+      </div>
+
+      <div class="alerta-saldo hidden" id="alertaSaldo">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="alertaSaldoMsg"></span>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Nova Ordem de Compra</span></div>
+        <div class="panel-body">
+          <div class="form-grid" style="margin-bottom:1rem">
+            <div class="field">
+              <label>CONTA *</label>
+              <select id="oc_conta" onchange="onContaChange()">
+                <option value="">Selecione a conta...</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>TERMO DE COOPERAÇÃO</label>
+              <input type="text" id="oc_termo" readonly>
+            </div>
+            <div class="field">
+              <label>ANO</label>
+              <input type="text" id="oc_ano" readonly>
+            </div>
+            <div class="field">
+              <label>CATEGORIA *</label>
+              <select id="oc_categoria" onchange="onCategoriaChange()">
+                <option value="">Selecione...</option>
+              </select>
+              <div class="field-hint" id="catHint"></div>
+            </div>
+            <div class="field">
+              <label>FORMA DE PAGAMENTO</label>
+              <select id="oc_forma_pagamento">
+                <option value="">Selecione...</option>
+                <option>NF</option><option>Boleto</option><option>Contrato</option><option>Outro</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>DATA DA OC</label>
+              <input type="date" id="oc_data_oc">
+            </div>
+            <div class="field span2">
+              <label>FORNECEDOR *</label>
+              <input type="text" id="oc_fornecedor" placeholder="Nome do fornecedor">
+            </div>
+            <div class="field">
+              <label>COMPRADOR</label>
+              <input type="text" id="oc_comprador" readonly>
+            </div>
+            <div class="field">
+              <label>ORDEM DE COMPRAS</label>
+              <input type="text" id="oc_ordem_compras" placeholder="Nº da OC">
+            </div>
+            <div class="field">
+              <label>SOLICITAÇÃO DE COMPRAS</label>
+              <input type="text" id="oc_solicitacao" placeholder="Nº da solicitação">
+            </div>
+            <div class="field">
+              <label>ID — IDC</label>
+              <input type="text" id="oc_id_idc" placeholder="ID">
+            </div>
+            <div class="field">
+              <label>VALOR TOTAL *</label>
+              <input type="number" id="oc_valor" placeholder="0.00" step="0.01" oninput="verificarSaldo()">
+            </div>
+            <div class="field span2">
+              <label>OBSERVAÇÕES</label>
+              <input type="text" id="oc_observacoes" placeholder="Observações opcionais">
+            </div>
+          </div>
+
+          <!-- Vencimentos parcelados -->
+          <div class="vencimentos-wrap">
+            <div class="venc-label">
+              <span>DATAS DE VENCIMENTO (parcelas)</span>
+              <button class="btn-add-venc" onclick="adicionarVencimento()" id="btnAddVenc">+ Adicionar parcela</button>
+            </div>
+            <div id="vencimentosContainer"></div>
+            <div style="font-size:.72rem;color:var(--text-dim);margin-top:.3rem">Deixe em branco se o pagamento for único sem data definida. Máximo 4 parcelas.</div>
+          </div>
+
+          <div id="alertCadastroOC" style="display:none;padding:.65rem .9rem;border-radius:8px;font-size:.82rem;margin-top:.875rem;background:rgba(224,90,90,.12);border:1px solid rgba(224,90,90,.3);color:#f08080"></div>
+
+          <div class="btn-row">
+            <button class="btn-primary" id="btnSalvarOC" onclick="salvarOC()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+              <span id="btnSalvarOCTxt">Salvar OC</span>
+              <span class="spinner-sm" id="btnSalvarOCSpin" style="display:none"></span>
+            </button>
+            <button class="btn-secondary" onclick="limparFormOC()">Limpar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- ABA 2: MINHAS OCs               -->
+    <!-- ════════════════════════════════ -->
+    <div class="tab-content" id="content-minhas">
+      <div class="panel">
+        <div class="tbl-controls">
+          <div class="search-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search" type="text" id="searchMinhas" placeholder="Buscar..." oninput="filtrarMinhas()">
+          </div>
+          <button class="btn-primary" onclick="carregarMinhasOCs()" style="margin-left:auto;font-size:.78rem;padding:.5rem 1rem">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Atualizar
+          </button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>CONTA</th><th>CATEGORIA</th><th>FORNECEDOR</th><th>ORDEM</th>
+              <th>DATA OC</th><th>VALOR</th><th>STATUS</th><th>VENCIMENTOS</th><th>AÇÕES</th>
+            </tr></thead>
+            <tbody id="tbodyMinhas">
+              <tr><td colspan="9" class="loading-state"><p>Clique em "Atualizar" para carregar</p></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- ABA 3: REGRAS DE VERBA (Gestor) -->
+    <!-- ════════════════════════════════ -->
+    <div class="tab-content" id="content-regras">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Definir Tetos de Verba por Conta</span>
+          <button class="btn-secondary" onclick="carregarRegras()" style="font-size:.78rem;padding:.45rem .9rem">Atualizar</button>
+        </div>
+        <div class="panel-body">
+          <div id="regrasContainer">
+            <div class="loading-state"><p>Carregando...</p></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn-primary" onclick="adicionarRegraForm()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nova Regra
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- ABA 4: CONSOLIDADO (Gestor)     -->
+    <!-- ════════════════════════════════ -->
+    <div class="tab-content" id="content-consolidado">
+      <div class="panel">
+        <div class="tbl-controls">
+          <div class="search-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search" type="text" id="searchConsolidado" placeholder="Buscar..." oninput="filtrarConsolidado()">
+          </div>
+          <select class="filter" id="filtroConta" onchange="filtrarConsolidado()">
+            <option value="">Todas as contas</option>
+          </select>
+          <select class="filter" id="filtroCategoria" onchange="filtrarConsolidado()">
+            <option value="">Todas as categorias</option>
+            <option>CUSTEIO</option><option>INVESTIMENTO</option><option>CONTRATO</option>
+          </select>
+          <button class="btn-primary" onclick="carregarConsolidado()" style="margin-left:auto;font-size:.78rem;padding:.5rem 1rem">Atualizar</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>COMPRADOR</th><th>CONTA</th><th>CATEGORIA</th><th>FORNECEDOR</th>
+              <th>ORDEM</th><th>DATA OC</th><th>VALOR</th><th>PAGO</th><th>SALDO OC</th><th>STATUS</th>
+            </tr></thead>
+            <tbody id="tbodyConsolidado">
+              <tr><td colspan="10" class="loading-state"><p>Clique em "Atualizar" para carregar</p></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="consolidadoFooter" style="padding:.75rem 1.5rem;border-top:1px solid var(--border);font-size:.75rem;color:var(--text-dim);display:none"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+const API_URL = 'https://script.google.com/macros/s/AKfycbyjEoIbY8BpSRfMvPpRWmy4WYSiTlvl9bbZ70XYE-KBvPGfjNSvg13Oa5iVYqb1RnKt/exec';
+// ══════════════════════════════════════════════════
+
+let TOKEN = null, SESSAO = null;
+let CONTAS = [], OCS_MINHAS = [], OCS_CONSOLIDADO = [];
+let CARGO_PODE_CATEGORIAS = [];
+let vencimentoCount = 0;
+
+const CARGO_LABEL = {
+  'Usuario':'Comprador','GestorSuprimentos':'Gestor de Suprimentos',
+  'GestorVerbaPublica':'Gestor de Verbas Públicas','Admin':'Administrador'
+};
+
+const CATEGORIAS_CARGO = {
+  'Usuario':            ['CUSTEIO'],
+  'GestorSuprimentos':  ['INVESTIMENTO'],
+  'GestorVerbaPublica': ['INVESTIMENTO','CONTRATO'],
+  'Admin':              ['CUSTEIO','INVESTIMENTO','CONTRATO'],
+};
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  TOKEN = localStorage.getItem('emendas_token');
+  const raw = localStorage.getItem('emendas_usuario');
+  if (!TOKEN || !raw) { window.location.href = 'index.html'; return; }
+  SESSAO = JSON.parse(raw);
+  if (SESSAO.setor !== 'Compras' && SESSAO.setor !== 'NucleoProj') {
+    showToast('Acesso negado.','erro');
+    setTimeout(() => window.location.href = 'index.html', 2000); return;
+  }
+
+  document.getElementById('sidebarNome').textContent   = SESSAO.nome;
+  document.getElementById('sidebarAvatar').textContent = SESSAO.nome.charAt(0).toUpperCase();
+  document.getElementById('sidebarCargo').textContent  = CARGO_LABEL[SESSAO.cargo] || SESSAO.cargo;
+  document.getElementById('oc_comprador').value        = SESSAO.nome;
+
+  // Categorias permitidas por cargo
+  CARGO_PODE_CATEGORIAS = CATEGORIAS_CARGO[SESSAO.cargo] || ['CUSTEIO'];
+
+  // Popular select de categorias
+  const selCat = document.getElementById('oc_categoria');
+  CARGO_PODE_CATEGORIAS.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    selCat.appendChild(opt);
+  });
+
+  // Mostrar abas de gestor
+  const isGestor = ['GestorSuprimentos','GestorVerbaPublica','Admin'].includes(SESSAO.cargo);
+  if (isGestor) {
+    ['nav-regras','nav-consolidado','tab-regras','tab-consolidado'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('hidden');
+    });
+  }
+
+  carregarContas();
+});
+
+// ── API ──
+async function api(acao, payload = {}) {
+  const res = await fetch(API_URL, {
+    method:'POST', headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify({ acao, token: TOKEN, payload })
+  });
+  if (!res.ok) throw new Error('Erro de rede: ' + res.status);
+  const data = await res.json();
+  if (data.relogin) { localStorage.clear(); window.location.href = 'index.html'; }
+  return data;
+}
+
+// ── TABS ──
+function ativarTab(tab) {
+  ['cadastro','minhas','regras','consolidado'].forEach(t => {
+    document.getElementById('content-' + t).classList.toggle('active', t === tab);
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  if (tab === 'minhas' && OCS_MINHAS.length === 0)         carregarMinhasOCs();
+  if (tab === 'regras')                                     carregarRegras();
+  if (tab === 'consolidado' && OCS_CONSOLIDADO.length === 0) carregarConsolidado();
+}
+
+// ── CARREGAR CONTAS ──
+async function carregarContas() {
+  try {
+    const res = await api('emendas.contas');
+    if (!res.ok) return;
+    CONTAS = res.dados || [];
+    const sel = document.getElementById('oc_conta');
+    sel.innerHTML = '<option value="">Selecione a conta...</option>' +
+      CONTAS.map(c => `<option value="${c.conta}">${c.conta}${c.termo ? ' — ' + c.termo : ''}</option>`).join('');
+
+    // Popular filtro de conta no consolidado
+    const filtro = document.getElementById('filtroConta');
+    if (filtro) {
+      filtro.innerHTML = '<option value="">Todas as contas</option>' +
+        CONTAS.map(c => `<option value="${c.conta}">${c.conta}</option>`).join('');
+    }
+  } catch(e) { showToast('Erro ao carregar contas.','erro'); }
+}
+
+function onContaChange() {
+  const conta = document.getElementById('oc_conta').value;
+  const c = CONTAS.find(x => x.conta === conta);
+  document.getElementById('oc_termo').value = c ? (c.termo || '') : '';
+  document.getElementById('oc_ano').value   = c ? (c.ano   || '') : '';
+
+  const cat = document.getElementById('oc_categoria').value;
+  if (conta && cat) verificarSaldo();
+  else ocultarSaldo();
+}
+
+function onCategoriaChange() {
+  const conta = document.getElementById('oc_conta').value;
+  const cat   = document.getElementById('oc_categoria').value;
+  const hints = {
+    'CUSTEIO':     'Compras de materiais e serviços de custeio',
+    'INVESTIMENTO':'Aquisição de equipamentos e bens permanentes',
+    'CONTRATO':    'Contratos formais com fornecedores',
+  };
+  document.getElementById('catHint').textContent = hints[cat] || '';
+  if (conta && cat) verificarSaldo();
+  else ocultarSaldo();
+}
+
+async function verificarSaldo() {
+  const conta = document.getElementById('oc_conta').value;
+  const cat   = document.getElementById('oc_categoria').value;
+  if (!conta || !cat) return;
+
+  try {
+    const res = await api('regras.saldo', { conta, categoria: cat });
+    if (!res.ok) { ocultarSaldo(); return; }
+
+    const { teto, consumido, disponivel, percentual, status } = res.dados;
+    if (teto === 0) { ocultarSaldo(); return; }
+
+    document.getElementById('saldoRow').style.display = 'grid';
+    document.getElementById('saldoTeto').textContent      = fmt(teto);
+    document.getElementById('saldoConsumido').textContent = fmt(consumido);
+    document.getElementById('saldoDisponivel').textContent= fmt(disponivel);
+    document.getElementById('saldoDisponivel').style.color =
+      status === 'bloqueado' ? 'var(--err)' : status === 'alerta' ? 'var(--warn)' : 'var(--ok)';
+
+    const fill = document.getElementById('saldoBarFill');
+    fill.style.width = Math.min(percentual, 100) + '%';
+    fill.className = 'saldo-bar-fill ' +
+      (status === 'bloqueado' ? 'fill-err' : status === 'alerta' ? 'fill-warn' : 'fill-ok');
+
+    const alerta = document.getElementById('alertaSaldo');
+    if (status === 'bloqueado') {
+      alerta.className = 'alerta-saldo err';
+      document.getElementById('alertaSaldoMsg').textContent =
+        'Limite de ' + cat + ' atingido (100%). Não é possível cadastrar novas OCs nesta categoria.';
+      alerta.style.display = 'flex';
+    } else if (status === 'alerta') {
+      alerta.className = 'alerta-saldo warn';
+      document.getElementById('alertaSaldoMsg').textContent =
+        percentual + '% do limite de ' + cat + ' utilizado. Saldo disponível: ' + fmt(disponivel) + '.';
+      alerta.style.display = 'flex';
+    } else {
+      alerta.style.display = 'none';
+    }
+
+    // Verificar se o valor digitado cabe
+    const valor = parseFloat(document.getElementById('oc_valor').value) || 0;
+    if (valor > 0 && valor > disponivel) {
+      const alerta2 = document.getElementById('alertCadastroOC');
+      alerta2.textContent = 'Valor da OC (R$ ' + fmt(valor) + ') excede o disponível (R$ ' + fmt(disponivel) + ').';
+      alerta2.style.display = 'block';
+    } else {
+      document.getElementById('alertCadastroOC').style.display = 'none';
+    }
+
+  } catch(e) { ocultarSaldo(); }
+}
+
+function ocultarSaldo() {
+  document.getElementById('saldoRow').style.display = 'none';
+  document.getElementById('alertaSaldo').style.display = 'none';
+}
+
+// ── VENCIMENTOS ──
+function adicionarVencimento() {
+  if (vencimentoCount >= 4) { showToast('Máximo de 4 parcelas.','erro'); return; }
+  vencimentoCount++;
+  const n = vencimentoCount;
+  const div = document.createElement('div');
+  div.className = 'venc-row';
+  div.id = 'venc-' + n;
+  div.innerHTML = `
+    <span class="venc-num">${n}ª parcela</span>
+    <div class="field" style="margin:0">
+      <input type="date" id="venc_data_${n}" style="padding:.5rem .75rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.82rem;outline:none;width:100%;transition:border-color .2s">
+    </div>
+    <div class="field" style="margin:0">
+      <input type="number" id="venc_valor_${n}" placeholder="Valor da parcela" step="0.01" style="padding:.5rem .75rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.82rem;outline:none;width:100%;transition:border-color .2s">
+    </div>
+    <button class="btn-rm-venc" onclick="removerVencimento(${n})">✕</button>
+  `;
+  document.getElementById('vencimentosContainer').appendChild(div);
+  if (vencimentoCount >= 4) document.getElementById('btnAddVenc').style.display = 'none';
+}
+
+function removerVencimento(n) {
+  const el = document.getElementById('venc-' + n);
+  if (el) el.remove();
+  vencimentoCount--;
+  document.getElementById('btnAddVenc').style.display = '';
+  // Renumerar
+  document.querySelectorAll('.venc-row').forEach((row, i) => {
+    const num = i + 1;
+    row.querySelector('.venc-num').textContent = num + 'ª parcela';
+  });
+}
+
+function coletarVencimentos() {
+  const vencimentos = [];
+  document.querySelectorAll('.venc-row').forEach((row, i) => {
+    const n = i + 1;
+    const data  = document.getElementById('venc_data_'  + row.id.split('-')[1])?.value;
+    const valor = document.getElementById('venc_valor_' + row.id.split('-')[1])?.value;
+    if (data || valor) {
+      vencimentos.push({ data_vencimento: data || '', valor_parcela: parseFloat(valor) || 0 });
+    }
+  });
+  return vencimentos;
+}
+
+// ── SALVAR OC ──
+async function salvarOC() {
+  const conta      = document.getElementById('oc_conta').value;
+  const categoria  = document.getElementById('oc_categoria').value;
+  const fornecedor = document.getElementById('oc_fornecedor').value.trim();
+  const valor      = document.getElementById('oc_valor').value;
+
+  if (!conta)     { mostrarAlertOC('Selecione a conta.'); return; }
+  if (!categoria) { mostrarAlertOC('Selecione a categoria.'); return; }
+  if (!fornecedor){ mostrarAlertOC('Informe o fornecedor.'); return; }
+  if (!valor || parseFloat(valor) <= 0) { mostrarAlertOC('Informe o valor da OC.'); return; }
+
+  setBtnLoading('btnSalvarOC','btnSalvarOCTxt','btnSalvarOCSpin', true);
+
+  const vencimentos = coletarVencimentos();
+  const payload = {
+    conta, categoria, fornecedor, valor: parseFloat(valor),
+    termo:           document.getElementById('oc_termo').value,
+    ano:             document.getElementById('oc_ano').value,
+    ordem_compras:   document.getElementById('oc_ordem_compras').value,
+    data_oc:         document.getElementById('oc_data_oc').value,
+    solicitacao:     document.getElementById('oc_solicitacao').value,
+    id_idc:          document.getElementById('oc_id_idc').value,
+    forma_pagamento: document.getElementById('oc_forma_pagamento').value,
+    observacoes:     document.getElementById('oc_observacoes').value,
+    vencimentos,
+  };
+
+  try {
+    const res = await api('ocs.salvar', payload);
+    if (!res.ok) { mostrarAlertOC(res.erro); return; }
+    showToast(res.msg, 'sucesso');
+    limparFormOC();
+    OCS_MINHAS = []; // força reload
+  } catch(e) {
+    mostrarAlertOC('Erro de conexão. Tente novamente.');
+  } finally {
+    setBtnLoading('btnSalvarOC','btnSalvarOCTxt','btnSalvarOCSpin', false);
+  }
+}
+
+function limparFormOC() {
+  ['oc_conta','oc_categoria','oc_forma_pagamento'].forEach(id => document.getElementById(id).value = '');
+  ['oc_termo','oc_ano','oc_ordem_compras','oc_data_oc','oc_solicitacao',
+   'oc_id_idc','oc_valor','oc_fornecedor','oc_observacoes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.readOnly) el.value = '';
+  });
+  document.getElementById('vencimentosContainer').innerHTML = '';
+  vencimentoCount = 0;
+  document.getElementById('btnAddVenc').style.display = '';
+  document.getElementById('alertCadastroOC').style.display = 'none';
+  ocultarSaldo();
+}
+
+function mostrarAlertOC(msg) {
+  const el = document.getElementById('alertCadastroOC');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+// ── MINHAS OCs ──
+async function carregarMinhasOCs() {
+  document.getElementById('tbodyMinhas').innerHTML =
+    '<tr><td colspan="9" class="loading-state"><p>Carregando...</p></td></tr>';
+  try {
+    const res = await api('ocs.listar');
+    if (!res.ok) { showToast(res.erro,'erro'); return; }
+    OCS_MINHAS = res.dados || [];
+    renderMinhas(OCS_MINHAS);
+  } catch(e) { showToast('Erro ao carregar OCs.','erro'); }
+}
+
+function filtrarMinhas() {
+  const q = document.getElementById('searchMinhas').value.toLowerCase();
+  renderMinhas(OCS_MINHAS.filter(o =>
+    String(o.conta||'').toLowerCase().includes(q) ||
+    String(o.fornecedor||'').toLowerCase().includes(q) ||
+    String(o.ordem_compras||'').toLowerCase().includes(q)
+  ));
+}
+
+function renderMinhas(lista) {
+  const tbody = document.getElementById('tbodyMinhas');
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-state"><p>Nenhuma OC encontrada</p></td></tr>'; return;
+  }
+  const pillCat = {'CUSTEIO':'pill-c','INVESTIMENTO':'pill-i','CONTRATO':'pill-ct'};
+  tbody.innerHTML = lista.map(o => {
+    const valor = fmt(parseFloat(o.valor||0));
+    const data  = o.data_oc ? new Date(o.data_oc).toLocaleDateString('pt-BR') : '—';
+    const cat   = String(o.categoria||'');
+    const vencList = (o.vencimentos||[]).map(v =>
+      `<div style="font-size:.72rem;color:${v.status==='Pendente'?'var(--warn)':'var(--text-dim)'}">
+        ${v.parcela_numero}ª: ${v.data_vencimento||'—'} · ${fmt(parseFloat(v.valor_parcela||0))}
+       </div>`
+    ).join('') || '<span style="color:var(--text-dim);font-size:.75rem">—</span>';
+
+    return `<tr>
+      <td><strong style="color:var(--cream)">${String(o.conta||'—')}</strong></td>
+      <td>${cat ? `<span class="pill ${pillCat[cat]||''}">${cat}</span>` : '—'}</td>
+      <td>${String(o.fornecedor||'—')}</td>
+      <td style="color:var(--text-dim)">${String(o.ordem_compras||'—')}</td>
+      <td style="color:var(--text-dim)">${data}</td>
+      <td style="color:var(--gold);font-weight:500">${valor}</td>
+      <td><span class="pill ${o.status==='Aberta'?'pill-ab':'pill-pg'}">${String(o.status||'—')}</span></td>
+      <td>${vencList}</td>
+      <td>
+        <button class="btn-icon danger" title="Excluir" onclick="excluirOC('${o.id}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function excluirOC(id) {
+  if (!confirm('Excluir esta OC e seus vencimentos?')) return;
+  try {
+    const res = await api('ocs.excluir', { id });
+    if (!res.ok) { showToast(res.erro,'erro'); return; }
+    showToast(res.msg,'sucesso');
+    carregarMinhasOCs();
+  } catch(e) { showToast('Erro ao excluir.','erro'); }
+}
+
+// ── REGRAS ──
+async function carregarRegras() {
+  try {
+    const [resRegras, resContas] = await Promise.all([
+      api('regras.listar'),
+      api('emendas.contas')
+    ]);
+    const regras = resRegras.ok ? resRegras.dados : [];
+    const contas = resContas.ok ? resContas.dados : [];
+    renderRegras(regras, contas);
+  } catch(e) { showToast('Erro ao carregar regras.','erro'); }
+}
+
+function renderRegras(regras, contas) {
+  const container = document.getElementById('regrasContainer');
+  if (!regras.length) {
+    container.innerHTML = '<div class="empty-state"><p>Nenhuma regra definida ainda. Clique em "Nova Regra" para começar.</p></div>';
+    return;
+  }
+  container.innerHTML = regras.map(r => `
+    <div class="regra-row">
+      <div class="field" style="margin:0">
+        <label>Conta</label>
+        <input type="text" value="${String(r.conta||'')}" readonly style="padding:.55rem .8rem;background:rgba(7,21,42,.4);border:1px solid rgba(201,168,76,.15);border-radius:8px;color:var(--text-dim);font-family:DM Sans,sans-serif;font-size:.875rem;outline:none;width:100%">
+      </div>
+      <div class="field" style="margin:0">
+        <label>Categoria</label>
+        <span class="pill ${r.categoria==='CUSTEIO'?'pill-c':r.categoria==='INVESTIMENTO'?'pill-i':'pill-ct'}" style="margin-top:.25rem">${String(r.categoria||'')}</span>
+      </div>
+      <div class="field" style="margin:0">
+        <label>Teto Definido</label>
+        <span style="font-family:Cormorant Garamond,serif;font-size:1.2rem;color:var(--gold)">${fmt(parseFloat(r.valor_teto||0))}</span>
+      </div>
+      <button class="btn-icon danger" title="Remover" style="margin-top:1rem" onclick="showToast('Edite diretamente no Sheets para remover regras.','aviso')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  `).join('');
+}
+
+function adicionarRegraForm() {
+  const container = document.getElementById('regrasContainer');
+  const id = 'nova-regra-' + Date.now();
+  const contasOpts = CONTAS.map(c => `<option value="${c.conta}">${c.conta}</option>`).join('');
+  const catsOpts   = CARGO_PODE_CATEGORIAS.map(c => `<option>${c}</option>`).join('');
+
+  const div = document.createElement('div');
+  div.id = id;
+  div.className = 'regra-row';
+  div.style.border = '1px solid rgba(201,168,76,.3)';
+  div.innerHTML = `
+    <div class="field" style="margin:0">
+      <label>Conta *</label>
+      <select id="${id}_conta" style="padding:.55rem .8rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.875rem;outline:none;width:100%">
+        <option value="">Selecione...</option>${contasOpts}
+      </select>
+    </div>
+    <div class="field" style="margin:0">
+      <label>Categoria *</label>
+      <select id="${id}_cat" style="padding:.55rem .8rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.875rem;outline:none;width:100%">
+        <option value="">Selecione...</option>${catsOpts}
+      </select>
+    </div>
+    <div class="field" style="margin:0">
+      <label>Teto (R$) *</label>
+      <input type="number" id="${id}_teto" placeholder="0.00" step="0.01" style="padding:.55rem .8rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.875rem;outline:none;width:100%;transition:border-color .2s">
+    </div>
+    <button class="btn-primary" style="margin-top:1rem;padding:.5rem .875rem;font-size:.78rem" onclick="salvarRegraForm('${id}')">Salvar</button>
+  `;
+  container.insertBefore(div, container.firstChild);
+}
+
+async function salvarRegraForm(id) {
+  const conta = document.getElementById(id + '_conta').value;
+  const cat   = document.getElementById(id + '_cat').value;
+  const teto  = document.getElementById(id + '_teto').value;
+  if (!conta || !cat || !teto) { showToast('Preencha todos os campos.','erro'); return; }
+
+  try {
+    const res = await api('regras.salvar', { conta, categoria: cat, valor_teto: parseFloat(teto) });
+    if (!res.ok) { showToast(res.erro,'erro'); return; }
+    showToast(res.msg,'sucesso');
+    carregarRegras();
+  } catch(e) { showToast('Erro de conexão.','erro'); }
+}
+
+// ── CONSOLIDADO ──
+async function carregarConsolidado() {
+  document.getElementById('tbodyConsolidado').innerHTML =
+    '<tr><td colspan="10" class="loading-state"><p>Carregando...</p></td></tr>';
+  try {
+    const res = await api('ocs.consolidado', {
+      conta:     document.getElementById('filtroConta').value,
+      categoria: document.getElementById('filtroCategoria').value,
+      pesquisa:  document.getElementById('searchConsolidado').value,
+    });
+    if (!res.ok) { showToast(res.erro,'erro'); return; }
+    OCS_CONSOLIDADO = res.dados || [];
+    renderConsolidado(OCS_CONSOLIDADO);
+  } catch(e) { showToast('Erro ao carregar consolidado.','erro'); }
+}
+
+function filtrarConsolidado() {
+  const q   = document.getElementById('searchConsolidado').value.toLowerCase();
+  const cnt = document.getElementById('filtroConta').value;
+  const cat = document.getElementById('filtroCategoria').value;
+  renderConsolidado(OCS_CONSOLIDADO.filter(o =>
+    (!cnt || o.conta === cnt) &&
+    (!cat || o.categoria === cat) &&
+    (!q   || [o.conta,o.fornecedor,o.comprador,o.ordem_compras].some(v => String(v||'').toLowerCase().includes(q)))
+  ));
+}
+
+function renderConsolidado(lista) {
+  const tbody = document.getElementById('tbodyConsolidado');
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty-state"><p>Nenhuma OC encontrada</p></td></tr>';
+    document.getElementById('consolidadoFooter').style.display = 'none'; return;
+  }
+  const pillCat = {'CUSTEIO':'pill-c','INVESTIMENTO':'pill-i','CONTRATO':'pill-ct'};
+  const totalValor = lista.reduce((s,o)=>s+(parseFloat(o.valor)||0),0);
+  const totalPago  = lista.reduce((s,o)=>s+(parseFloat(o.total_pago)||0),0);
+
+  tbody.innerHTML = lista.map(o => {
+    const cat   = String(o.categoria||'');
+    const saldo = parseFloat(o.saldo_oc||0);
+    return `<tr>
+      <td>${String(o.comprador||'—')}</td>
+      <td><strong style="color:var(--cream)">${String(o.conta||'—')}</strong></td>
+      <td>${cat ? `<span class="pill ${pillCat[cat]||''}">${cat}</span>` : '—'}</td>
+      <td>${String(o.fornecedor||'—')}</td>
+      <td style="color:var(--text-dim)">${String(o.ordem_compras||'—')}</td>
+      <td style="color:var(--text-dim)">${o.data_oc ? new Date(o.data_oc).toLocaleDateString('pt-BR') : '—'}</td>
+      <td style="color:var(--gold);font-weight:500">${fmt(parseFloat(o.valor||0))}</td>
+      <td style="color:var(--ok)">${fmt(parseFloat(o.total_pago||0))}</td>
+      <td style="color:${saldo<0?'var(--err)':'var(--text)'}">${fmt(saldo)}</td>
+      <td><span class="pill ${o.status==='Aberta'?'pill-ab':'pill-pg'}">${String(o.status||'—')}</span></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('consolidadoFooter').style.display = 'block';
+  document.getElementById('consolidadoFooter').innerHTML =
+    `${lista.length} OC(s) · Total: <strong style="color:var(--gold)">${fmt(totalValor)}</strong> · Pago: <strong style="color:var(--ok)">${fmt(totalPago)}</strong>`;
+}
+
+// ── HELPERS ──
+function fmt(n) { return (n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+
+function setBtnLoading(btnId, txtId, spinId, loading) {
+  document.getElementById(btnId).disabled = loading;
+  document.getElementById(txtId).style.display = loading ? 'none' : 'inline';
+  document.getElementById(spinId).style.display = loading ? 'inline-block' : 'none';
+}
+
+let toastTimer;
+function showToast(msg, tipo='sucesso') {
+  const el = document.getElementById('toast');
+  el.className = 'toast ' + tipo;
+  el.innerHTML = (tipo==='sucesso'
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>'
+    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+  ) + `<span>${msg}</span>`;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+async function logout() {
+  if (!confirm('Deseja sair?')) return;
+  try { await api('logout'); } catch(e) {}
+  localStorage.clear();
+  window.location.href = 'index.html';
+}
+</script>
+</body>
+</html>
