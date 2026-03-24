@@ -527,8 +527,8 @@ async function chamarAPI(acao, payload, token = null) {
   const body = { acao, payload };
   if (token) body.token = token;
 
-  // Content-Type text/plain evita preflight OPTIONS
-  // que causa erro de CORS ao abrir via file:// ou GitHub Pages
+  console.log('Enviando para API:', JSON.stringify(body));
+
   const res = await fetch(API_URL, {
     method:  'POST',
     headers: { 'Content-Type': 'text/plain' },
@@ -536,7 +536,9 @@ async function chamarAPI(acao, payload, token = null) {
   });
 
   if (!res.ok) throw new Error('Erro de rede: ' + res.status);
-  return res.json();
+  const json = await res.json();
+  console.log('Resposta da API:', JSON.stringify(json));
+  return json;
 }
 
 // ══════════════════════════════════════════════════════════
