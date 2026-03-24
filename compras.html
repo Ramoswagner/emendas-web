@@ -7,425 +7,407 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  :root{
-    --navy:#07152a;--navy-mid:#0d2240;--navy-card:rgba(13,34,64,.75);
-    --gold:#c9a84c;--gold-light:#e8c96d;--gold-dim:#8a6f2e;
-    --cream:#f5f0e8;--text:#e8e4dc;--text-dim:#8fa3b8;
-    --border:rgba(201,168,76,.2);
-    --ok:#4caf82;--warn:#e09a3a;--err:#e05a5a;
-    --sidebar-w:240px;
-  }
-  html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);overflow-x:hidden}
-  .bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 10% 30%,rgba(22,53,97,.5) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 90% 80%,rgba(13,34,64,.7) 0%,transparent 55%),#07152a}
-  .top-bar{position:fixed;top:0;left:0;right:0;height:3px;z-index:100;background:linear-gradient(90deg,transparent,var(--gold) 40%,var(--gold-light) 60%,transparent)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#07152a;--navy-card:rgba(13,34,64,.75);
+  --gold:#c9a84c;--gold-light:#e8c96d;--gold-dim:#8a6f2e;
+  --cream:#f5f0e8;--text:#e8e4dc;--text-dim:#8fa3b8;
+  --border:rgba(201,168,76,.2);
+  --ok:#4caf82;--warn:#e09a3a;--err:#e05a5a;--crit:#ff4444;--azul:#5b9bd5;
+  --sidebar-w:240px;
+}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 10% 30%,rgba(22,53,97,.5) 0%,transparent 60%),#07152a}
+.top-bar{position:fixed;top:0;left:0;right:0;height:3px;z-index:100;background:linear-gradient(90deg,transparent,var(--gold) 40%,var(--gold-light) 60%,transparent)}
+.layout{position:relative;z-index:1;display:flex;min-height:100vh;padding-top:3px}
 
-  .layout{position:relative;z-index:1;display:flex;min-height:100vh;padding-top:3px}
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:rgba(7,21,42,.92);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:3px;bottom:0;backdrop-filter:blur(20px);z-index:50;overflow-y:auto}
+.sidebar-header{padding:1.25rem 1rem .875rem;border-bottom:1px solid var(--border);flex-shrink:0}
+.logo-row{display:flex;align-items:center;gap:.6rem}
+.logo-icon{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:rgba(201,168,76,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-text{font-family:'Cormorant Garamond',serif;font-size:.95rem;font-weight:500;color:var(--cream)}
+.logo-sub{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim)}
+.nav{flex:1;padding:.6rem 0}
+.nav-label{padding:.35rem 1rem .15rem;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-dim);font-weight:500;margin-top:.4rem}
+.nav-item{display:flex;align-items:center;gap:.55rem;padding:.55rem 1rem;color:var(--text-dim);cursor:pointer;transition:all .2s;font-size:.8rem;border-left:2px solid transparent;text-decoration:none}
+.nav-item:hover{color:var(--text);background:rgba(201,168,76,.05)}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,168,76,.08)}
+.nav-item.hidden{display:none}
+.sidebar-footer{padding:.75rem 1rem;border-top:1px solid var(--border);flex-shrink:0}
+.user-info{display:flex;align-items:center;gap:.55rem;margin-bottom:.55rem}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dim),var(--gold));display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:500;color:var(--navy);flex-shrink:0}
+.user-name{font-size:.78rem;color:var(--text);font-weight:500}
+.user-role{font-size:.64rem;color:var(--text-dim)}
+.btn-logout{width:100%;padding:.4rem;background:rgba(224,90,90,.08);border:1px solid rgba(224,90,90,.2);border-radius:6px;color:#f08080;font-size:.72rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem;font-family:inherit}
 
-  /* SIDEBAR */
-  .sidebar{width:var(--sidebar-w);min-height:100vh;background:rgba(7,21,42,.92);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:3px;bottom:0;backdrop-filter:blur(20px);z-index:50}
-  .sidebar-header{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid var(--border)}
-  .logo-row{display:flex;align-items:center;gap:.65rem;margin-bottom:.4rem}
-  .logo-icon{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:rgba(201,168,76,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-  .logo-text{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:500;color:var(--cream);line-height:1.2}
-  .logo-sub{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dim)}
-  .nav{flex:1;padding:.75rem 0;overflow-y:auto}
-  .nav-label{padding:.4rem 1.25rem .2rem;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-dim);font-weight:500}
-  .nav-item{display:flex;align-items:center;gap:.65rem;padding:.6rem 1.25rem;color:var(--text-dim);cursor:pointer;transition:all .2s;font-size:.82rem;border-left:2px solid transparent;text-decoration:none}
-  .nav-item:hover{color:var(--text);background:rgba(201,168,76,.05)}
-  .nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,168,76,.08)}
-  .nav-item.hidden{display:none}
-  .sidebar-footer{padding:.875rem 1.25rem;border-top:1px solid var(--border)}
-  .user-info{display:flex;align-items:center;gap:.65rem;margin-bottom:.65rem}
-  .user-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dim),var(--gold));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:500;color:var(--navy);flex-shrink:0}
-  .user-name{font-size:.8rem;color:var(--text);font-weight:500}
-  .user-role{font-size:.67rem;color:var(--text-dim)}
-  .btn-logout{width:100%;padding:.45rem;background:rgba(224,90,90,.08);border:1px solid rgba(224,90,90,.2);border-radius:6px;color:#f08080;font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:all .2s;font-family:inherit}
-  .btn-logout:hover{background:rgba(224,90,90,.15)}
+.main{margin-left:var(--sidebar-w);flex:1;padding:1.5rem 1.75rem;animation:fadeIn .4s both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-  /* MAIN */
-  .main{margin-left:var(--sidebar-w);flex:1;padding:1.75rem 2rem;animation:fadeIn .5s .1s both}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.tabs-bar{display:flex;gap:0;margin-bottom:1.5rem;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tab-btn{padding:.65rem 1.25rem;font-size:.78rem;font-weight:500;color:var(--text-dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;font-family:inherit;display:flex;align-items:center;gap:.4rem}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab-btn.hidden{display:none}
+.tab-content{display:none}
+.tab-content.active{display:block}
 
-  /* TABS */
-  .tabs-bar{display:flex;gap:0;margin-bottom:1.75rem;border-bottom:1px solid var(--border);flex-wrap:wrap}
-  .tab-btn{padding:.7rem 1.35rem;font-size:.8rem;font-weight:500;color:var(--text-dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;font-family:inherit;display:flex;align-items:center;gap:.45rem}
-  .tab-btn:hover{color:var(--text)}
-  .tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
-  .tab-btn.hidden{display:none}
-  .tab-content{display:none}
-  .tab-content.active{display:block}
+.panel{background:var(--navy-card);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(14px);overflow:hidden;margin-bottom:1.1rem}
+.panel-header{padding:.875rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.panel-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:500;color:var(--cream)}
+.panel-body{padding:1.1rem 1.25rem}
 
-  /* PANEL */
-  .panel{background:var(--navy-card);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(16px);overflow:hidden;margin-bottom:1.25rem}
-  .panel-header{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
-  .panel-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:500;color:var(--cream)}
-  .panel-body{padding:1.25rem 1.5rem}
+.cat-banner{padding:.58rem .9rem;border-radius:8px;font-size:.78rem;margin-bottom:.875rem;display:flex;align-items:center;gap:.5rem;font-weight:500}
+.cat-custeio{background:rgba(176,141,245,.1);border:1px solid rgba(176,141,245,.25);color:#b08df5}
+.cat-investimento{background:rgba(109,214,168,.1);border:1px solid rgba(109,214,168,.25);color:#6dd6a8}
+.cat-contrato{background:rgba(245,197,109,.1);border:1px solid rgba(245,197,109,.25);color:#f5c56d}
 
-  /* SALDO WIDGET */
-  .saldo-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.25rem}
-  .saldo-card{background:rgba(7,21,42,.5);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
-  .saldo-label{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:.35rem}
-  .saldo-valor{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:500;color:var(--cream)}
-  .saldo-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.1);margin-top:.5rem;overflow:hidden}
-  .saldo-bar-fill{height:100%;border-radius:2px;transition:width .5s ease}
-  .fill-ok{background:var(--ok)}
-  .fill-warn{background:var(--warn)}
-  .fill-err{background:var(--err)}
+.saldo-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.875rem;margin-bottom:1rem}
+.saldo-card{background:rgba(7,21,42,.5);border:1px solid var(--border);border-radius:10px;padding:.875rem 1.1rem}
+.saldo-label{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:.3rem}
+.saldo-valor{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:500;color:var(--cream)}
+.saldo-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.08);margin-top:.4rem;overflow:hidden}
+.saldo-fill{height:100%;border-radius:2px;transition:width .5s}
 
-  .alerta-saldo{display:none;padding:.65rem .9rem;border-radius:8px;font-size:.82rem;margin-bottom:1rem;display:flex;align-items:flex-start;gap:.5rem}
-  .alerta-saldo.warn{background:rgba(224,154,58,.12);border:1px solid rgba(224,154,58,.3);color:#f5c56d}
-  .alerta-saldo.err{background:rgba(224,90,90,.12);border:1px solid rgba(224,90,90,.3);color:#f08080}
-  .alerta-saldo.hidden{display:none!important}
+.form-grid{display:grid;gap:.75rem}
+.col3{grid-template-columns:repeat(3,1fr)}
+.col2{grid-template-columns:repeat(2,1fr)}
+.span2{grid-column:span 2}
+.span3{grid-column:span 3}
+.field{display:flex;flex-direction:column;gap:.25rem}
+.field label{font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim);font-weight:500}
+.field input,.field select,.field textarea{padding:.58rem .8rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.855rem;outline:none;transition:border-color .2s;width:100%}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.08)}
+.field input::placeholder,.field textarea::placeholder{color:rgba(143,163,184,.4)}
+.field input[readonly]{background:rgba(7,21,42,.4);color:var(--text-dim)}
+.field select option{background:#0d2240}
+.field textarea{resize:vertical;min-height:60px}
+.field-hint{font-size:.64rem;color:var(--text-dim);margin-top:.2rem}
 
-  /* FORM */
-  .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.875rem}
-  .form-grid.col2{grid-template-columns:repeat(2,1fr)}
-  .form-grid.col1{grid-template-columns:1fr}
-  .span2{grid-column:span 2}
-  .span3{grid-column:span 3}
-  .field{display:flex;flex-direction:column;gap:.3rem}
-  .field label{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim);font-weight:500}
-  .field input,.field select,.field textarea{padding:.62rem .875rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s,box-shadow .2s;width:100%}
-  .field input:focus,.field select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.08)}
-  .field input::placeholder{color:rgba(143,163,184,.4)}
-  .field input[readonly]{background:rgba(7,21,42,.4);color:var(--text-dim);cursor:default}
-  .field select option{background:#0d2240}
-  .field-hint{font-size:.68rem;color:var(--text-dim);margin-top:.2rem}
+.section-sep{margin-top:.875rem;padding-top:.875rem;border-top:1px solid var(--border)}
+.section-lbl{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:.65rem;font-weight:500}
 
-  /* Vencimentos */
-  .vencimentos-wrap{margin-top:1rem}
-  .venc-label{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between}
-  .venc-row{display:grid;grid-template-columns:auto 1fr 1fr auto;gap:.75rem;align-items:center;margin-bottom:.5rem;padding:.5rem .75rem;background:rgba(7,21,42,.4);border:1px solid rgba(201,168,76,.1);border-radius:8px}
-  .venc-num{font-size:.72rem;color:var(--text-dim);font-weight:500;white-space:nowrap}
-  .btn-add-venc{padding:.35rem .75rem;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);border-radius:6px;color:var(--gold);font-size:.75rem;cursor:pointer;font-family:inherit;transition:all .2s}
-  .btn-add-venc:hover{background:rgba(201,168,76,.18)}
-  .btn-rm-venc{width:24px;height:24px;border-radius:5px;background:rgba(224,90,90,.08);border:1px solid rgba(224,90,90,.2);color:#f08080;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:all .15s}
-  .btn-rm-venc:hover{background:rgba(224,90,90,.18)}
+.venc-wrap{margin-top:.875rem}
+.venc-row{display:grid;grid-template-columns:auto 1fr 1fr auto;gap:.6rem;align-items:center;margin-bottom:.4rem;padding:.42rem .6rem;background:rgba(7,21,42,.4);border:1px solid rgba(201,168,76,.1);border-radius:8px}
+.venc-num{font-size:.68rem;color:var(--text-dim);white-space:nowrap}
+.btn-add-venc{padding:.28rem .65rem;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);border-radius:6px;color:var(--gold);font-size:.7rem;cursor:pointer;font-family:inherit;margin-top:.4rem;display:inline-block}
+.btn-rm-venc{width:22px;height:22px;border-radius:5px;background:rgba(224,90,90,.08);border:1px solid rgba(224,90,90,.2);color:#f08080;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.72rem}
 
-  /* BOTÕES */
-  .btn-row{display:flex;gap:.75rem;margin-top:1.1rem;flex-wrap:wrap}
-  .btn-primary{padding:.62rem 1.4rem;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border:none;border-radius:8px;color:var(--navy);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:.45rem;transition:all .2s}
-  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(201,168,76,.25)}
-  .btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
-  .btn-secondary{padding:.62rem 1.2rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text-dim);font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:pointer;transition:all .2s}
-  .btn-secondary:hover{border-color:rgba(201,168,76,.4);color:var(--text)}
-  .btn-danger{padding:.62rem 1.2rem;background:rgba(224,90,90,.1);border:1px solid rgba(224,90,90,.25);border-radius:8px;color:#f08080;font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:pointer;transition:all .2s}
+.btn-row{display:flex;gap:.65rem;margin-top:.875rem;flex-wrap:wrap}
+.btn-primary{padding:.58rem 1.2rem;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border:none;border-radius:8px;color:var(--navy);font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;transition:all .2s}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(201,168,76,.25)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-secondary{padding:.58rem 1rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text-dim);font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;transition:all .2s}
+.btn-secondary:hover{border-color:rgba(201,168,76,.4);color:var(--text)}
+.btn-warn{padding:.38rem .8rem;background:rgba(224,154,58,.1);border:1px solid rgba(224,154,58,.25);border-radius:7px;color:#f5c56d;font-family:'DM Sans',sans-serif;font-size:.72rem;cursor:pointer;white-space:nowrap}
+.btn-ok{padding:.38rem .8rem;background:rgba(76,175,130,.1);border:1px solid rgba(76,175,130,.25);border-radius:7px;color:var(--ok);font-family:'DM Sans',sans-serif;font-size:.72rem;cursor:pointer;white-space:nowrap}
+.btn-icon{width:26px;height:26px;border-radius:6px;background:transparent;border:1px solid transparent;color:var(--text-dim);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s}
+.btn-icon.danger:hover{background:rgba(224,90,90,.1);color:#f08080;border-color:rgba(224,90,90,.3)}
+.spinner-sm{display:inline-block;width:13px;height:13px;border:2px solid rgba(7,21,42,.3);border-top-color:#07152a;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  .spinner-sm{display:inline-block;width:14px;height:14px;border:2px solid rgba(7,21,42,.3);border-top-color:#07152a;border-radius:50%;animation:spin .7s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
+.alerta{padding:.6rem .875rem;border-radius:8px;font-size:.78rem;display:flex;align-items:flex-start;gap:.5rem;margin-bottom:.875rem}
+.alerta.warn{background:rgba(224,154,58,.12);border:1px solid rgba(224,154,58,.3);color:#f5c56d}
+.alerta.err{background:rgba(224,90,90,.12);border:1px solid rgba(224,90,90,.3);color:#f08080}
+.alerta.ok{background:rgba(76,175,130,.12);border:1px solid rgba(76,175,130,.3);color:#6dd6a8}
+.alerta.hidden{display:none!important}
 
-  /* TABELA */
-  .tbl-controls{padding:.875rem 1.5rem;border-bottom:1px solid var(--border);display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
-  .search-wrap{position:relative}
-  .search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none}
-  input.search{padding:.5rem 1rem .5rem 2.25rem;background:rgba(7,21,42,.6);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.8rem;outline:none;width:220px;transition:border-color .2s}
-  input.search:focus{border-color:var(--gold)}
-  input.search::placeholder{color:rgba(143,163,184,.5)}
-  select.filter{padding:.5rem .875rem;background:rgba(7,21,42,.6);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.8rem;outline:none}
-  select.filter option{background:#0d2240}
-  .tbl-wrap{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;font-size:.81rem}
-  thead tr{background:rgba(7,21,42,.5)}
-  th{padding:.6rem 1rem;text-align:left;font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim);font-weight:500;white-space:nowrap;border-bottom:1px solid var(--border)}
-  td{padding:.7rem 1rem;color:var(--text);border-bottom:1px solid rgba(201,168,76,.06);vertical-align:middle}
-  tr:last-child td{border-bottom:none}
-  tbody tr{transition:background .15s}
-  tbody tr:hover{background:rgba(201,168,76,.04)}
-  .empty-state,.loading-state{text-align:center;padding:2.5rem 1rem;color:var(--text-dim);font-size:.82rem}
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(4,12,24,.88);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:#0d2240;border:1px solid var(--border);border-radius:14px;width:100%;max-width:460px;box-shadow:0 32px 64px rgba(0,0,0,.6);transform:translateY(20px) scale(.97);transition:transform .3s cubic-bezier(.23,1,.32,1);overflow:hidden}
+.modal-overlay.open .modal{transform:translateY(0) scale(1)}
+.modal-header{padding:1.1rem 1.35rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:500;color:var(--cream)}
+.modal-body{padding:1.1rem 1.35rem}
+.modal-footer{padding:.875rem 1.35rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.65rem}
 
-  .pill{display:inline-flex;align-items:center;padding:.17rem .55rem;border-radius:20px;font-size:.68rem;font-weight:500;white-space:nowrap}
-  .pill-c{background:rgba(60,30,107,.2);color:#b08df5;border:1px solid rgba(60,30,107,.3)}
-  .pill-i{background:rgba(30,107,60,.2);color:#6dd6a8;border:1px solid rgba(30,107,60,.3)}
-  .pill-ct{background:rgba(123,63,0,.2);color:#f5c56d;border:1px solid rgba(123,63,0,.3)}
-  .pill-ab{background:rgba(76,175,130,.1);color:var(--ok);border:1px solid rgba(76,175,130,.2)}
-  .pill-pg{background:rgba(143,163,184,.1);color:var(--text-dim);border:1px solid rgba(143,163,184,.15)}
+.tbl-controls{padding:.75rem 1.25rem;border-bottom:1px solid var(--border);display:flex;gap:.65rem;align-items:center;flex-wrap:wrap}
+.search-wrap{position:relative}
+.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none}
+input.search{padding:.46rem 1rem .46rem 2rem;background:rgba(7,21,42,.6);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.78rem;outline:none;width:200px}
+input.search:focus{border-color:var(--gold)}
+input.search::placeholder{color:rgba(143,163,184,.5)}
+select.filter{padding:.46rem .8rem;background:rgba(7,21,42,.6);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.78rem;outline:none}
+select.filter option{background:#0d2240}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+thead tr{background:rgba(7,21,42,.5)}
+th{padding:.55rem .875rem;text-align:left;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim);font-weight:500;white-space:nowrap;border-bottom:1px solid var(--border)}
+td{padding:.62rem .875rem;color:var(--text);border-bottom:1px solid rgba(201,168,76,.05);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(201,168,76,.03)}
+.tbl-footer{padding:.62rem 1.25rem;border-top:1px solid var(--border);font-size:.72rem;color:var(--text-dim)}
+.empty-state,.loading-state{text-align:center;padding:2rem 1rem;color:var(--text-dim);font-size:.8rem}
 
-  .btn-icon{width:27px;height:27px;border-radius:6px;background:transparent;border:1px solid transparent;color:var(--text-dim);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s}
-  .btn-icon:hover{background:rgba(201,168,76,.1);color:var(--gold);border-color:var(--border)}
-  .btn-icon.danger:hover{background:rgba(224,90,90,.1);color:#f08080;border-color:rgba(224,90,90,.3)}
+.pill{display:inline-flex;align-items:center;padding:.14rem .48rem;border-radius:20px;font-size:.64rem;font-weight:500;white-space:nowrap}
+.pill-c{background:rgba(60,30,107,.2);color:#b08df5;border:1px solid rgba(60,30,107,.3)}
+.pill-i{background:rgba(30,107,60,.2);color:#6dd6a8;border:1px solid rgba(30,107,60,.3)}
+.pill-ct{background:rgba(123,63,0,.2);color:#f5c56d;border:1px solid rgba(123,63,0,.3)}
+.pill-rp{background:rgba(255,68,68,.15);color:#ff8080;border:1px solid rgba(255,68,68,.25)}
+.pill-ab{background:rgba(76,175,130,.1);color:var(--ok);border:1px solid rgba(76,175,130,.2)}
+.pill-pg{background:rgba(143,163,184,.1);color:var(--text-dim);border:1px solid rgba(143,163,184,.15)}
+.pill-pend{background:rgba(224,154,58,.1);color:#f5c56d;border:1px solid rgba(224,154,58,.2)}
 
-  /* REGRAS */
-  .regra-row{display:grid;grid-template-columns:1fr auto 1fr auto;gap:.875rem;align-items:end;padding:.875rem;background:rgba(7,21,42,.4);border:1px solid rgba(201,168,76,.1);border-radius:10px;margin-bottom:.75rem}
+.sub-tabs{display:flex;gap:0;margin-bottom:.875rem;border-bottom:1px solid var(--border)}
+.sub-tab{padding:.5rem 1rem;font-size:.75rem;font-weight:500;color:var(--text-dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s}
+.sub-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.sub-content{display:none}
+.sub-content.active{display:block}
 
-  /* Toast */
-  .toast{position:fixed;bottom:1.75rem;right:1.75rem;z-index:300;padding:.8rem 1.1rem;border-radius:10px;font-size:.83rem;display:flex;align-items:center;gap:.55rem;transform:translateY(20px);opacity:0;transition:all .3s cubic-bezier(.23,1,.32,1);max-width:320px}
-  .toast.show{transform:translateY(0);opacity:1}
-  .toast.sucesso{background:rgba(76,175,130,.15);border:1px solid rgba(76,175,130,.3);color:#6dd6a8}
-  .toast.erro{background:rgba(224,90,90,.15);border:1px solid rgba(224,90,90,.3);color:#f08080}
+.score-bar{height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:.2rem}
+.score-fill{height:100%;border-radius:3px}
+
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:300;padding:.72rem .95rem;border-radius:10px;font-size:.78rem;display:flex;align-items:center;gap:.5rem;transform:translateY(20px);opacity:0;transition:all .3s cubic-bezier(.23,1,.32,1);max-width:300px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.sucesso{background:rgba(76,175,130,.15);border:1px solid rgba(76,175,130,.3);color:#6dd6a8}
+.toast.erro{background:rgba(224,90,90,.15);border:1px solid rgba(224,90,90,.3);color:#f08080}
+.toast.aviso{background:rgba(224,154,58,.15);border:1px solid rgba(224,154,58,.3);color:#f5c56d}
 </style>
 </head>
 <body>
-<div class="top-bar"></div>
-<div class="bg"></div>
-
+<div class="top-bar"></div><div class="bg"></div>
 <div class="layout">
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="logo-row">
-        <div class="logo-icon">
-          <svg width="16" height="16" viewBox="0 0 32 32" fill="none"><path d="M4 20C4 20 7 14 16 14C25 14 28 18 28 18C28 18 25 24 20 25C15 26 10 24 7 22L4 20Z" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20L2 17C2 17 4 12 9 11" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/><circle cx="22" cy="18" r="1.5" fill="#c9a84c" opacity=".8"/></svg>
-        </div>
-        <div><div class="logo-text">Gestão de Emendas</div><div class="logo-sub">Hospital da Baleia</div></div>
-      </div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo-row">
+      <div class="logo-icon"><svg width="15" height="15" viewBox="0 0 32 32" fill="none"><path d="M4 20C4 20 7 14 16 14C25 14 28 18 28 18C28 18 25 24 20 25C15 26 10 24 7 22L4 20Z" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/><circle cx="22" cy="18" r="1.5" fill="#c9a84c"/></svg></div>
+      <div><div class="logo-text">Compras</div><div class="logo-sub">Hospital da Baleia</div></div>
     </div>
-    <nav class="nav">
-      <div class="nav-label">Compras</div>
-      <a class="nav-item active" onclick="ativarTab('cadastro')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Cadastrar OC
-      </a>
-      <a class="nav-item" onclick="ativarTab('minhas')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Minhas OCs
-      </a>
-      <a class="nav-item hidden" id="nav-regras" onclick="ativarTab('regras')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        Regras de Verba
-      </a>
-      <a class="nav-item hidden" id="nav-consolidado" onclick="ativarTab('consolidado')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-        Consolidado
-      </a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="user-info">
-        <div class="user-avatar" id="sidebarAvatar">?</div>
-        <div><div class="user-name" id="sidebarNome">—</div><div class="user-role" id="sidebarCargo">Compras</div></div>
-      </div>
-      <button class="btn-logout" onclick="logout()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Sair
-      </button>
+  </div>
+  <nav class="nav">
+    <div class="nav-label">Compras</div>
+    <a class="nav-item active" onclick="ativarTab('cadastro')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Cadastrar OC</a>
+    <a class="nav-item" onclick="ativarTab('minhas')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>Minhas OCs</a>
+    <a class="nav-item hidden" id="nav-invest" onclick="ativarTab('investimento')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Itens de Investimento</a>
+    <a class="nav-item hidden" id="nav-regras" onclick="ativarTab('regras')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Regras de Verba</a>
+    <a class="nav-item hidden" id="nav-consolidado" onclick="ativarTab('consolidado')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Consolidado</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar" id="sidebarAvatar">?</div>
+      <div><div class="user-name" id="sidebarNome">—</div><div class="user-role" id="sidebarCargo">—</div></div>
     </div>
-  </aside>
+    <button class="btn-logout" onclick="logout()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sair</button>
+  </div>
+</aside>
 
-  <!-- MAIN -->
-  <main class="main">
-    <div class="tabs-bar">
-      <button class="tab-btn active" id="tab-cadastro" onclick="ativarTab('cadastro')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Cadastrar OC
-      </button>
-      <button class="tab-btn" id="tab-minhas" onclick="ativarTab('minhas')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
-        Minhas OCs
-      </button>
-      <button class="tab-btn hidden" id="tab-regras" onclick="ativarTab('regras')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        Regras de Verba
-      </button>
-      <button class="tab-btn hidden" id="tab-consolidado" onclick="ativarTab('consolidado')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-        Consolidado
-      </button>
+<!-- MAIN -->
+<main class="main">
+  <div class="tabs-bar">
+    <button class="tab-btn active" id="tab-cadastro" onclick="ativarTab('cadastro')">Cadastrar OC</button>
+    <button class="tab-btn" id="tab-minhas" onclick="ativarTab('minhas')">Minhas OCs</button>
+    <button class="tab-btn hidden" id="tab-invest" onclick="ativarTab('investimento')">Itens de Investimento</button>
+    <button class="tab-btn hidden" id="tab-regras" onclick="ativarTab('regras')">Regras de Verba</button>
+    <button class="tab-btn hidden" id="tab-consolidado" onclick="ativarTab('consolidado')">Consolidado</button>
+  </div>
+
+  <!-- ══ CADASTRAR OC ══ -->
+  <div class="tab-content active" id="content-cadastro">
+    <div id="saldoRow" style="display:none" class="saldo-row">
+      <div class="saldo-card"><div class="saldo-label">Teto da Categoria</div><div class="saldo-valor" id="saldoTeto">—</div></div>
+      <div class="saldo-card">
+        <div class="saldo-label">Comprometido</div><div class="saldo-valor" id="saldoCons">—</div>
+        <div class="saldo-bar"><div class="saldo-fill" id="saldoFill" style="width:0%"></div></div>
+      </div>
+      <div class="saldo-card"><div class="saldo-label">Disponível</div><div class="saldo-valor" id="saldoDisp">—</div></div>
     </div>
+    <div class="alerta hidden" id="alertaSaldo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span id="alertaSaldoTxt"></span></div>
 
-    <!-- ════════════════════════════════ -->
-    <!-- ABA 1: CADASTRAR OC             -->
-    <!-- ════════════════════════════════ -->
-    <div class="tab-content active" id="content-cadastro">
-
-      <!-- Saldo disponível -->
-      <div class="saldo-row" id="saldoRow" style="display:none">
-        <div class="saldo-card">
-          <div class="saldo-label">Teto da Categoria</div>
-          <div class="saldo-valor" id="saldoTeto">—</div>
-        </div>
-        <div class="saldo-card">
-          <div class="saldo-label">Já Comprometido</div>
-          <div class="saldo-valor" id="saldoConsumido">—</div>
-          <div class="saldo-bar"><div class="saldo-bar-fill" id="saldoBarFill" style="width:0%"></div></div>
-        </div>
-        <div class="saldo-card">
-          <div class="saldo-label">Disponível</div>
-          <div class="saldo-valor" id="saldoDisponivel">—</div>
-        </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Nova Ordem de Compra</span>
+        <div id="catBanner" style="display:none" class="cat-banner"></div>
       </div>
+      <div class="panel-body">
+        <div class="form-grid col3" style="margin-bottom:.875rem">
+          <div class="field"><label>CONTA *</label><select id="oc_conta" onchange="onContaChange()"><option value="">Selecione...</option></select></div>
+          <div class="field"><label>CATEGORIA *</label><select id="oc_categoria" onchange="onCategoriaChange()"><option value="">Selecione...</option></select></div>
+          <div class="field"><label>FORMA DE PAGAMENTO</label><select id="oc_forma"><option value="">—</option><option>NF</option><option>Boleto</option><option>Contrato</option><option>Outro</option></select></div>
+          <div class="field"><label>TERMO</label><input type="text" id="oc_termo" readonly></div>
+          <div class="field"><label>ANO</label><input type="text" id="oc_ano" readonly></div>
+          <div class="field"><label>DATA DA OC</label><input type="date" id="oc_data_oc"></div>
+          <div class="field span2"><label>FORNECEDOR *</label><input type="text" id="oc_fornecedor" placeholder="Nome do fornecedor"></div>
+          <div class="field"><label>COMPRADOR</label><input type="text" id="oc_comprador" readonly></div>
+          <div class="field"><label>ORDEM DE COMPRAS</label><input type="text" id="oc_ordem" placeholder="Nº da OC"></div>
+          <div class="field"><label>SOLICITAÇÃO</label><input type="text" id="oc_sol" placeholder="Nº"></div>
+          <div class="field"><label>ID — IDC</label><input type="text" id="oc_idc"></div>
+          <div class="field"><label>VALOR TOTAL *</label><input type="number" id="oc_valor" placeholder="0.00" step="0.01" oninput="verificarSaldo()"></div>
+          <div class="field span2"><label>OBSERVAÇÕES</label><input type="text" id="oc_obs"></div>
+        </div>
 
-      <div class="alerta-saldo hidden" id="alertaSaldo">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span id="alertaSaldoMsg"></span>
-      </div>
-
-      <div class="panel">
-        <div class="panel-header"><span class="panel-title">Nova Ordem de Compra</span></div>
-        <div class="panel-body">
-          <div class="form-grid" style="margin-bottom:1rem">
+        <!-- INVESTIMENTO: vinculação ao item -->
+        <div id="secInvest" style="display:none" class="section-sep">
+          <div class="section-lbl">🖥️ Vinculação — Item de Investimento</div>
+          <div class="form-grid col2">
             <div class="field">
-              <label>CONTA *</label>
-              <select id="oc_conta" onchange="onContaChange()">
-                <option value="">Selecione a conta...</option>
+              <label>ITEM DE INVESTIMENTO</label>
+              <select id="oc_item"><option value="">Selecionar item validado...</option></select>
+              <div class="field-hint">Selecione o item ao qual esta OC se refere (opcional)</div>
+            </div>
+            <div class="field">
+              <label>RODADA DE AQUISIÇÃO</label>
+              <select id="oc_rodada">
+                <option value="">—</option><option value="1">1ª</option><option value="2">2ª</option>
+                <option value="3">3ª</option><option value="4">4ª</option><option value="5">5ª</option><option value="6">6ª</option>
               </select>
             </div>
-            <div class="field">
-              <label>TERMO DE COOPERAÇÃO</label>
-              <input type="text" id="oc_termo" readonly>
-            </div>
-            <div class="field">
-              <label>ANO</label>
-              <input type="text" id="oc_ano" readonly>
-            </div>
-            <div class="field">
-              <label>CATEGORIA *</label>
-              <select id="oc_categoria" onchange="onCategoriaChange()">
-                <option value="">Selecione...</option>
-              </select>
-              <div class="field-hint" id="catHint"></div>
-            </div>
-            <div class="field">
-              <label>FORMA DE PAGAMENTO</label>
-              <select id="oc_forma_pagamento">
-                <option value="">Selecione...</option>
-                <option>NF</option><option>Boleto</option><option>Contrato</option><option>Outro</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>DATA DA OC</label>
-              <input type="date" id="oc_data_oc">
-            </div>
-            <div class="field span2">
-              <label>FORNECEDOR *</label>
-              <input type="text" id="oc_fornecedor" placeholder="Nome do fornecedor">
-            </div>
-            <div class="field">
-              <label>COMPRADOR</label>
-              <input type="text" id="oc_comprador" readonly>
-            </div>
-            <div class="field">
-              <label>ORDEM DE COMPRAS</label>
-              <input type="text" id="oc_ordem_compras" placeholder="Nº da OC">
-            </div>
-            <div class="field">
-              <label>SOLICITAÇÃO DE COMPRAS</label>
-              <input type="text" id="oc_solicitacao" placeholder="Nº da solicitação">
-            </div>
-            <div class="field">
-              <label>ID — IDC</label>
-              <input type="text" id="oc_id_idc" placeholder="ID">
-            </div>
-            <div class="field">
-              <label>VALOR TOTAL *</label>
-              <input type="number" id="oc_valor" placeholder="0.00" step="0.01" oninput="verificarSaldo()">
-            </div>
-            <div class="field span2">
-              <label>OBSERVAÇÕES</label>
-              <input type="text" id="oc_observacoes" placeholder="Observações opcionais">
-            </div>
-          </div>
-
-          <!-- Vencimentos parcelados -->
-          <div class="vencimentos-wrap">
-            <div class="venc-label">
-              <span>DATAS DE VENCIMENTO (parcelas)</span>
-              <button class="btn-add-venc" onclick="adicionarVencimento()" id="btnAddVenc">+ Adicionar parcela</button>
-            </div>
-            <div id="vencimentosContainer"></div>
-            <div style="font-size:.72rem;color:var(--text-dim);margin-top:.3rem">Deixe em branco se o pagamento for único sem data definida. Máximo 4 parcelas.</div>
-          </div>
-
-          <div id="alertCadastroOC" style="display:none;padding:.65rem .9rem;border-radius:8px;font-size:.82rem;margin-top:.875rem;background:rgba(224,90,90,.12);border:1px solid rgba(224,90,90,.3);color:#f08080"></div>
-
-          <div class="btn-row">
-            <button class="btn-primary" id="btnSalvarOC" onclick="salvarOC()">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
-              <span id="btnSalvarOCTxt">Salvar OC</span>
-              <span class="spinner-sm" id="btnSalvarOCSpin" style="display:none"></span>
-            </button>
-            <button class="btn-secondary" onclick="limparFormOC()">Limpar</button>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- ════════════════════════════════ -->
-    <!-- ABA 2: MINHAS OCs               -->
-    <!-- ════════════════════════════════ -->
-    <div class="tab-content" id="content-minhas">
-      <div class="panel">
-        <div class="tbl-controls">
-          <div class="search-wrap">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input class="search" type="text" id="searchMinhas" placeholder="Buscar..." oninput="filtrarMinhas()">
+        <!-- CONTRATO: dados adicionais -->
+        <div id="secContrato" style="display:none" class="section-sep">
+          <div class="section-lbl">📋 Dados do Contrato</div>
+          <div class="form-grid col2">
+            <div class="field"><label>NÚMERO DO CONTRATO</label><input type="text" id="oc_num_ct" placeholder="CT 001/2025"></div>
+            <div class="field"><label>VIGÊNCIA DO CONTRATO</label><input type="date" id="oc_vig_ct"></div>
           </div>
-          <button class="btn-primary" onclick="carregarMinhasOCs()" style="margin-left:auto;font-size:.78rem;padding:.5rem 1rem">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-            Atualizar
+        </div>
+
+        <!-- VENCIMENTOS -->
+        <div class="venc-wrap">
+          <div style="font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:.4rem;display:flex;align-items:center;justify-content:space-between">
+            <span>PARCELAS / VENCIMENTOS</span>
+            <button class="btn-add-venc" id="btnAddVenc" onclick="addVenc()">+ Parcela</button>
+          </div>
+          <div id="vencWrap"></div>
+          <div class="field-hint">Máx. 4 parcelas. Deixe vazio para pagamento único sem data.</div>
+        </div>
+
+        <div class="alerta hidden" id="alertOC"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span id="alertOCTxt"></span></div>
+
+        <div class="btn-row">
+          <button class="btn-primary" id="btnSalvar" onclick="salvarOC()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+            <span id="btnSalvarTxt">Salvar OC</span><span class="spinner-sm" id="btnSalvarSpin" style="display:none"></span>
           </button>
-        </div>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr>
-              <th>CONTA</th><th>CATEGORIA</th><th>FORNECEDOR</th><th>ORDEM</th>
-              <th>DATA OC</th><th>VALOR</th><th>STATUS</th><th>VENCIMENTOS</th><th>AÇÕES</th>
-            </tr></thead>
-            <tbody id="tbodyMinhas">
-              <tr><td colspan="9" class="loading-state"><p>Clique em "Atualizar" para carregar</p></td></tr>
-            </tbody>
-          </table>
+          <button class="btn-secondary" onclick="limparOC()">Limpar</button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- ════════════════════════════════ -->
-    <!-- ABA 3: REGRAS DE VERBA (Gestor) -->
-    <!-- ════════════════════════════════ -->
-    <div class="tab-content" id="content-regras">
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">Definir Tetos de Verba por Conta</span>
-          <button class="btn-secondary" onclick="carregarRegras()" style="font-size:.78rem;padding:.45rem .9rem">Atualizar</button>
-        </div>
-        <div class="panel-body">
-          <div id="regrasContainer">
-            <div class="loading-state"><p>Carregando...</p></div>
-          </div>
-          <div class="btn-row">
-            <button class="btn-primary" onclick="adicionarRegraForm()">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Nova Regra
-            </button>
-          </div>
+  <!-- ══ MINHAS OCs ══ -->
+  <div class="tab-content" id="content-minhas">
+    <div class="panel">
+      <div class="tbl-controls">
+        <div class="search-wrap"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" id="searchMin" placeholder="Buscar..." oninput="filtrarMinhas()"></div>
+        <select class="filter" id="filtroMinCat" onchange="filtrarMinhas()"><option value="">Todas</option><option>CUSTEIO</option><option>INVESTIMENTO</option><option>CONTRATO</option></select>
+        <button class="btn-primary" onclick="carregarMinhas()" style="font-size:.74rem;padding:.44rem .9rem;margin-left:auto">Atualizar</button>
+      </div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>CONTA</th><th>CAT.</th><th>FORNECEDOR</th><th>ORDEM</th><th>DATA</th><th>VALOR</th><th>STATUS</th><th>TIPO</th><th>AÇÕES</th></tr></thead>
+        <tbody id="tbodyMin"><tr><td colspan="9" class="loading-state"><p>Clique em "Atualizar"</p></td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ══ ITENS DE INVESTIMENTO ══ -->
+  <div class="tab-content" id="content-investimento">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Itens de Investimento</span>
+        <div style="display:flex;gap:.65rem;align-items:center">
+          <select class="filter" id="filtroInvConta" onchange="carregarInvest()"><option value="">Todas as contas</option></select>
+          <button class="btn-primary" onclick="carregarInvest()" style="font-size:.74rem;padding:.44rem .9rem">Atualizar</button>
         </div>
       </div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>CONTA</th><th>TIPO</th><th>DESCRIÇÃO</th><th>PRIORIDADE</th><th>STATUS</th><th>QTD PLAN.</th><th>VALOR EST.</th><th>ADQUIRIDO</th><th>FALTAM</th><th>SALDO</th><th>VERBA PRÓPRIA</th><th>AÇÕES</th></tr></thead>
+        <tbody id="tbodyInvest"><tr><td colspan="12" class="loading-state"><p>Selecione uma conta</p></td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ══ REGRAS DE VERBA ══ -->
+  <div class="tab-content" id="content-regras">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Tetos de Verba por Conta</span><button class="btn-secondary" onclick="carregarRegras()" style="font-size:.74rem;padding:.38rem .875rem">Atualizar</button></div>
+      <div class="panel-body">
+        <div id="regrasWrap"><div class="loading-state"><p>Carregando...</p></div></div>
+        <div class="btn-row"><button class="btn-primary" onclick="addRegraForm()">+ Nova Regra</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CONSOLIDADO ══ -->
+  <div class="tab-content" id="content-consolidado">
+    <div class="sub-tabs">
+      <button class="sub-tab active" onclick="ativarSubTab('todas')">Todas as OCs</button>
+      <button class="sub-tab" onclick="ativarSubTab('recurso')">Recurso Próprio</button>
     </div>
 
-    <!-- ════════════════════════════════ -->
-    <!-- ABA 4: CONSOLIDADO (Gestor)     -->
-    <!-- ════════════════════════════════ -->
-    <div class="tab-content" id="content-consolidado">
+    <div class="sub-content active" id="sub-todas">
       <div class="panel">
         <div class="tbl-controls">
-          <div class="search-wrap">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input class="search" type="text" id="searchConsolidado" placeholder="Buscar..." oninput="filtrarConsolidado()">
-          </div>
-          <select class="filter" id="filtroConta" onchange="filtrarConsolidado()">
-            <option value="">Todas as contas</option>
-          </select>
-          <select class="filter" id="filtroCategoria" onchange="filtrarConsolidado()">
-            <option value="">Todas as categorias</option>
-            <option>CUSTEIO</option><option>INVESTIMENTO</option><option>CONTRATO</option>
-          </select>
-          <button class="btn-primary" onclick="carregarConsolidado()" style="margin-left:auto;font-size:.78rem;padding:.5rem 1rem">Atualizar</button>
+          <div class="search-wrap"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" id="searchCons" placeholder="Buscar..." oninput="filtrarCons()"></div>
+          <select class="filter" id="filtroConsConta" onchange="filtrarCons()"><option value="">Todas as contas</option></select>
+          <select class="filter" id="filtroConsCat" onchange="filtrarCons()"><option value="">Todas</option><option>CUSTEIO</option><option>INVESTIMENTO</option><option>CONTRATO</option></select>
+          <button class="btn-primary" onclick="carregarCons()" style="font-size:.74rem;padding:.44rem .9rem;margin-left:auto">Atualizar</button>
         </div>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr>
-              <th>COMPRADOR</th><th>CONTA</th><th>CATEGORIA</th><th>FORNECEDOR</th>
-              <th>ORDEM</th><th>DATA OC</th><th>VALOR</th><th>PAGO</th><th>SALDO OC</th><th>STATUS</th>
-            </tr></thead>
-            <tbody id="tbodyConsolidado">
-              <tr><td colspan="10" class="loading-state"><p>Clique em "Atualizar" para carregar</p></td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div id="consolidadoFooter" style="padding:.75rem 1.5rem;border-top:1px solid var(--border);font-size:.75rem;color:var(--text-dim);display:none"></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>COMPRADOR</th><th>CONTA</th><th>CAT.</th><th>FORNECEDOR</th><th>ORDEM</th><th>VALOR</th><th>PAGO</th><th>SALDO OC</th><th>STATUS</th></tr></thead>
+          <tbody id="tbodyCons"><tr><td colspan="9" class="loading-state"><p>Clique em "Atualizar"</p></td></tr></tbody>
+        </table></div>
+        <div class="tbl-footer" id="footerCons" style="display:none"></div>
       </div>
     </div>
 
-  </main>
+    <div class="sub-content" id="sub-recurso">
+      <div class="sub-tabs" style="border-bottom:1px solid rgba(201,168,76,.12)">
+        <button class="sub-tab active" onclick="filtrarRP('CUSTEIO')">Custeio</button>
+        <button class="sub-tab" onclick="filtrarRP('INVESTIMENTO')">Investimento</button>
+        <button class="sub-tab" onclick="filtrarRP('CONTRATO')">Contrato</button>
+      </div>
+      <div id="rpBody" style="margin-top:.875rem"></div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- MODAL: RECURSO PRÓPRIO -->
+<div class="modal-overlay" id="modalRP">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">⚠️ Limite Atingido</span><button style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1rem" onclick="fecharModal('modalRP')">✕</button></div>
+    <div class="modal-body">
+      <p id="modalRPMsg" style="font-size:.84rem;color:var(--text);line-height:1.6;margin-bottom:.875rem"></p>
+      <div style="padding:.75rem;background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.2);border-radius:8px;font-size:.78rem;color:#ff8080">
+        Se confirmar, a OC será registrada como <strong>Recurso Próprio do Hospital</strong>. Você poderá solicitar mudança de conta ao Financeiro depois.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fecharModal('modalRP')">Cancelar</button>
+      <button class="btn-warn" onclick="confirmarRP()">Registrar como Recurso Próprio</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SOLICITAR MUDANÇA DE CONTA -->
+<div class="modal-overlay" id="modalReq">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Solicitar Mudança de Conta</span><button style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1rem" onclick="fecharModal('modalReq')">✕</button></div>
+    <div class="modal-body">
+      <div class="field" style="margin-bottom:.75rem">
+        <label>CONTA DESTINO *</label>
+        <select id="reqConta"><option value="">Selecione a conta...</option></select>
+      </div>
+      <div class="field">
+        <label>MOTIVO *</label>
+        <textarea id="reqMotivo" placeholder="Descreva o motivo..." rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fecharModal('modalReq')">Cancelar</button>
+      <button class="btn-primary" onclick="enviarReq()">Enviar ao Financeiro</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -435,531 +417,428 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbyjEoIbY8BpSRfMvPpRWmy4WYSiTlvl9bbZ70XYE-KBvPGfjNSvg13Oa5iVYqb1RnKt/exec';
 // ══════════════════════════════════════════════════
 
-let TOKEN = null, SESSAO = null;
-let CONTAS = [], OCS_MINHAS = [], OCS_CONSOLIDADO = [];
-let CARGO_PODE_CATEGORIAS = [];
-let vencimentoCount = 0;
+let TOKEN=null, SESSAO=null;
+let CONTAS=[], OCS_MIN=[], OCS_CONS=[], OCS_RP=[], INVEST=[];
+let CARGO_CATS=[], vencCount=0;
+let PEND_OC=null, REQ_OC_ID=null, RP_CAT_ATUAL='CUSTEIO';
 
-const CARGO_LABEL = {
-  'Usuario':'Comprador','GestorSuprimentos':'Gestor de Suprimentos',
-  'GestorVerbaPublica':'Gestor de Verbas Públicas','Admin':'Administrador'
-};
+const CARGO_LABEL={'Usuario':'Comprador','GestorSuprimentos':'Gestor Suprim.',
+  'AnalistaVerbaPublica':'Analista VP','GestorVerbaPublica':'Gestor VP','Admin':'Admin'};
+const CATS_CARGO={'Usuario':['CUSTEIO'],'GestorSuprimentos':['CUSTEIO','INVESTIMENTO'],
+  'AnalistaVerbaPublica':['INVESTIMENTO','CONTRATO'],'GestorVerbaPublica':['CUSTEIO','INVESTIMENTO','CONTRATO'],'Admin':['CUSTEIO','INVESTIMENTO','CONTRATO']};
+const PILL={'CUSTEIO':'pill-c','INVESTIMENTO':'pill-i','CONTRATO':'pill-ct'};
+const CAT_CLS={'CUSTEIO':'cat-custeio','INVESTIMENTO':'cat-investimento','CONTRATO':'cat-contrato'};
+const CAT_ICO={'CUSTEIO':'💰','INVESTIMENTO':'🖥️','CONTRATO':'📋'};
+const PRIO_COR={'Alta':'var(--err)','Média':'var(--warn)','Baixa':'var(--ok)'};
+const STAT_PILL={'Validado':'pill-ab','Pendente':'pill-pend','Reprovado':'pill-rp'};
 
-const CATEGORIAS_CARGO = {
-  'Usuario':            ['CUSTEIO'],
-  'GestorSuprimentos':  ['INVESTIMENTO'],
-  'GestorVerbaPublica': ['INVESTIMENTO','CONTRATO'],
-  'Admin':              ['CUSTEIO','INVESTIMENTO','CONTRATO'],
-};
-
-// ── INIT ──
-document.addEventListener('DOMContentLoaded', () => {
-  TOKEN = localStorage.getItem('emendas_token');
-  const raw = localStorage.getItem('emendas_usuario');
-  if (!TOKEN || !raw) { window.location.href = 'index.html'; return; }
-  SESSAO = JSON.parse(raw);
-  if (SESSAO.setor !== 'Compras' && SESSAO.setor !== 'NucleoProj') {
-    showToast('Acesso negado.','erro');
-    setTimeout(() => window.location.href = 'index.html', 2000); return;
-  }
-
-  document.getElementById('sidebarNome').textContent   = SESSAO.nome;
-  document.getElementById('sidebarAvatar').textContent = SESSAO.nome.charAt(0).toUpperCase();
-  document.getElementById('sidebarCargo').textContent  = CARGO_LABEL[SESSAO.cargo] || SESSAO.cargo;
-  document.getElementById('oc_comprador').value        = SESSAO.nome;
-
-  // Categorias permitidas por cargo
-  CARGO_PODE_CATEGORIAS = CATEGORIAS_CARGO[SESSAO.cargo] || ['CUSTEIO'];
-
-  // Popular select de categorias
-  const selCat = document.getElementById('oc_categoria');
-  CARGO_PODE_CATEGORIAS.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c; opt.textContent = c;
-    selCat.appendChild(opt);
-  });
-
-  // Mostrar abas de gestor
-  const isGestor = ['GestorSuprimentos','GestorVerbaPublica','Admin'].includes(SESSAO.cargo);
-  if (isGestor) {
-    ['nav-regras','nav-consolidado','tab-regras','tab-consolidado'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.classList.remove('hidden');
-    });
-  }
-
+document.addEventListener('DOMContentLoaded',()=>{
+  TOKEN=localStorage.getItem('emendas_token');
+  const raw=localStorage.getItem('emendas_usuario');
+  if(!TOKEN||!raw){window.location.href='index.html';return;}
+  SESSAO=JSON.parse(raw);
+  if(!['Compras','NucleoProj'].includes(SESSAO.setor)){showToast('Acesso negado.','erro');setTimeout(()=>window.location.href='index.html',2000);return;}
+  document.getElementById('sidebarNome').textContent=SESSAO.nome;
+  document.getElementById('sidebarAvatar').textContent=SESSAO.nome.charAt(0).toUpperCase();
+  document.getElementById('sidebarCargo').textContent=CARGO_LABEL[SESSAO.cargo]||SESSAO.cargo;
+  document.getElementById('oc_comprador').value=SESSAO.nome;
+  CARGO_CATS=CATS_CARGO[SESSAO.cargo]||['CUSTEIO'];
+  const sel=document.getElementById('oc_categoria');
+  CARGO_CATS.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+  const isGestor=['GestorSuprimentos','AnalistaVerbaPublica','GestorVerbaPublica','Admin'].includes(SESSAO.cargo);
+  if(isGestor){['nav-regras','nav-consolidado','tab-regras','tab-consolidado'].forEach(id=>document.getElementById(id)?.classList.remove('hidden'));}
+  const podeInvest=['AnalistaVerbaPublica','GestorVerbaPublica','Admin'].includes(SESSAO.cargo);
+  if(podeInvest){['nav-invest','tab-invest'].forEach(id=>document.getElementById(id)?.classList.remove('hidden'));}
   carregarContas();
 });
 
-// ── API ──
-async function api(acao, payload = {}) {
-  const res = await fetch(API_URL, {
-    method:'POST', headers:{'Content-Type':'text/plain'},
-    body: JSON.stringify({ acao, token: TOKEN, payload })
-  });
-  if (!res.ok) throw new Error('Erro de rede: ' + res.status);
-  const data = await res.json();
-  if (data.relogin) { localStorage.clear(); window.location.href = 'index.html'; }
+async function api(acao,payload={}){
+  const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({acao,token:TOKEN,payload})});
+  if(!res.ok)throw new Error('Erro de rede: '+res.status);
+  const data=await res.json();
+  if(data.relogin){localStorage.clear();window.location.href='index.html';}
   return data;
 }
 
-// ── TABS ──
-function ativarTab(tab) {
-  ['cadastro','minhas','regras','consolidado'].forEach(t => {
-    document.getElementById('content-' + t).classList.toggle('active', t === tab);
-    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+function ativarTab(tab){
+  ['cadastro','minhas','investimento','regras','consolidado'].forEach(t=>{
+    document.getElementById('content-'+t).classList.toggle('active',t===tab);
+    document.getElementById('tab-'+t)?.classList.toggle('active',t===tab);
   });
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  if (tab === 'minhas' && OCS_MINHAS.length === 0)         carregarMinhasOCs();
-  if (tab === 'regras')                                     carregarRegras();
-  if (tab === 'consolidado' && OCS_CONSOLIDADO.length === 0) carregarConsolidado();
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  if(tab==='minhas'&&OCS_MIN.length===0)carregarMinhas();
+  if(tab==='regras')carregarRegras();
+  if(tab==='consolidado'&&OCS_CONS.length===0)carregarCons();
+  if(tab==='investimento')carregarInvest();
+}
+function ativarSubTab(sub){
+  ['todas','recurso'].forEach(s=>{document.getElementById('sub-'+s).classList.toggle('active',s===sub);});
+  document.querySelectorAll('.tabs-bar + .sub-tabs .sub-tab, .tab-content.active .sub-tabs .sub-tab').forEach((el,i)=>{el.classList.toggle('active',['todas','recurso'][i]===sub);});
+  if(sub==='recurso')renderRP(RP_CAT_ATUAL);
 }
 
-// ── CARREGAR CONTAS ──
-async function carregarContas() {
-  try {
-    const res = await api('emendas.contas');
-    if (!res.ok) return;
-    CONTAS = res.dados || [];
-    const sel = document.getElementById('oc_conta');
-    sel.innerHTML = '<option value="">Selecione a conta...</option>' +
-      CONTAS.map(c => `<option value="${c.conta}">${c.conta}${c.termo ? ' — ' + c.termo : ''}</option>`).join('');
-
-    // Popular filtro de conta no consolidado
-    const filtro = document.getElementById('filtroConta');
-    if (filtro) {
-      filtro.innerHTML = '<option value="">Todas as contas</option>' +
-        CONTAS.map(c => `<option value="${c.conta}">${c.conta}</option>`).join('');
-    }
-  } catch(e) { showToast('Erro ao carregar contas.','erro'); }
+// ── CONTAS ──
+async function carregarContas(){
+  try{
+    const res=await api('emendas.contas');
+    if(!res.ok)return;
+    CONTAS=res.dados||[];
+    const opts='<option value="">Selecione...</option>'+CONTAS.map(c=>`<option value="${c.conta}">${c.conta}${c.termo?' — '+c.termo:''}</option>`).join('');
+    document.getElementById('oc_conta').innerHTML=opts;
+    const fc=document.getElementById('filtroConsConta');
+    if(fc)fc.innerHTML='<option value="">Todas</option>'+CONTAS.map(c=>`<option value="${c.conta}">${c.conta}</option>`).join('');
+    const fi=document.getElementById('filtroInvConta');
+    if(fi)fi.innerHTML='<option value="">Todas</option>'+CONTAS.map(c=>`<option value="${c.conta}">${c.conta}</option>`).join('');
+  }catch(e){showToast('Erro ao carregar contas.','erro');}
 }
 
-function onContaChange() {
-  const conta = document.getElementById('oc_conta').value;
-  const c = CONTAS.find(x => x.conta === conta);
-  document.getElementById('oc_termo').value = c ? (c.termo || '') : '';
-  document.getElementById('oc_ano').value   = c ? (c.ano   || '') : '';
-
-  const cat = document.getElementById('oc_categoria').value;
-  if (conta && cat) verificarSaldo();
-  else ocultarSaldo();
+function onContaChange(){
+  const conta=document.getElementById('oc_conta').value;
+  const c=CONTAS.find(x=>x.conta===conta);
+  document.getElementById('oc_termo').value=c?(c.termo||''):'';
+  document.getElementById('oc_ano').value=c?(c.ano||''):'';
+  const cat=document.getElementById('oc_categoria').value;
+  if(conta&&cat)verificarSaldo(); else ocultarSaldo();
+  if(conta&&document.getElementById('secInvest').style.display!=='none')carregarItensParaOC(conta);
 }
 
-function onCategoriaChange() {
-  const conta = document.getElementById('oc_conta').value;
-  const cat   = document.getElementById('oc_categoria').value;
-  const hints = {
-    'CUSTEIO':     'Compras de materiais e serviços de custeio',
-    'INVESTIMENTO':'Aquisição de equipamentos e bens permanentes',
-    'CONTRATO':    'Contratos formais com fornecedores',
-  };
-  document.getElementById('catHint').textContent = hints[cat] || '';
-  if (conta && cat) verificarSaldo();
-  else ocultarSaldo();
+function onCategoriaChange(){
+  const cat=document.getElementById('oc_categoria').value;
+  const banner=document.getElementById('catBanner');
+  if(cat){banner.style.display='flex';banner.className='cat-banner '+(CAT_CLS[cat]||'');banner.textContent=(CAT_ICO[cat]||'')+' '+cat;}
+  else{banner.style.display='none';}
+  document.getElementById('secInvest').style.display=cat==='INVESTIMENTO'?'block':'none';
+  document.getElementById('secContrato').style.display=cat==='CONTRATO'?'block':'none';
+  const conta=document.getElementById('oc_conta').value;
+  if(conta&&cat)verificarSaldo(); else ocultarSaldo();
+  if(cat==='INVESTIMENTO'&&conta)carregarItensParaOC(conta);
 }
 
-async function verificarSaldo() {
-  const conta = document.getElementById('oc_conta').value;
-  const cat   = document.getElementById('oc_categoria').value;
-  if (!conta || !cat) return;
-
-  try {
-    const res = await api('regras.saldo', { conta, categoria: cat });
-    if (!res.ok) { ocultarSaldo(); return; }
-
-    const { teto, consumido, disponivel, percentual, status } = res.dados;
-    if (teto === 0) { ocultarSaldo(); return; }
-
-    document.getElementById('saldoRow').style.display = 'grid';
-    document.getElementById('saldoTeto').textContent      = fmt(teto);
-    document.getElementById('saldoConsumido').textContent = fmt(consumido);
-    document.getElementById('saldoDisponivel').textContent= fmt(disponivel);
-    document.getElementById('saldoDisponivel').style.color =
-      status === 'bloqueado' ? 'var(--err)' : status === 'alerta' ? 'var(--warn)' : 'var(--ok)';
-
-    const fill = document.getElementById('saldoBarFill');
-    fill.style.width = Math.min(percentual, 100) + '%';
-    fill.className = 'saldo-bar-fill ' +
-      (status === 'bloqueado' ? 'fill-err' : status === 'alerta' ? 'fill-warn' : 'fill-ok');
-
-    const alerta = document.getElementById('alertaSaldo');
-    if (status === 'bloqueado') {
-      alerta.className = 'alerta-saldo err';
-      document.getElementById('alertaSaldoMsg').textContent =
-        'Limite de ' + cat + ' atingido (100%). Não é possível cadastrar novas OCs nesta categoria.';
-      alerta.style.display = 'flex';
-    } else if (status === 'alerta') {
-      alerta.className = 'alerta-saldo warn';
-      document.getElementById('alertaSaldoMsg').textContent =
-        percentual + '% do limite de ' + cat + ' utilizado. Saldo disponível: ' + fmt(disponivel) + '.';
-      alerta.style.display = 'flex';
-    } else {
-      alerta.style.display = 'none';
-    }
-
-    // Verificar se o valor digitado cabe
-    const valor = parseFloat(document.getElementById('oc_valor').value) || 0;
-    if (valor > 0 && valor > disponivel) {
-      const alerta2 = document.getElementById('alertCadastroOC');
-      alerta2.textContent = 'Valor da OC (R$ ' + fmt(valor) + ') excede o disponível (R$ ' + fmt(disponivel) + ').';
-      alerta2.style.display = 'block';
-    } else {
-      document.getElementById('alertCadastroOC').style.display = 'none';
-    }
-
-  } catch(e) { ocultarSaldo(); }
+async function carregarItensParaOC(conta){
+  try{
+    const res=await api('invest.listar',{conta,status:'Validado'});
+    if(!res.ok)return;
+    const sel=document.getElementById('oc_item');
+    sel.innerHTML='<option value="">Selecionar item...</option>'+(res.dados||[]).map(i=>`<option value="${i.id}">[${i.tipo_item||''}] ${i.descricao||''}</option>`).join('');
+  }catch(e){}
 }
 
-function ocultarSaldo() {
-  document.getElementById('saldoRow').style.display = 'none';
-  document.getElementById('alertaSaldo').style.display = 'none';
+// ── SALDO ──
+async function verificarSaldo(){
+  const conta=document.getElementById('oc_conta').value;
+  const cat=document.getElementById('oc_categoria').value;
+  if(!conta||!cat)return;
+  try{
+    const res=await api('regras.saldo',{conta,categoria:cat});
+    if(!res.ok){ocultarSaldo();return;}
+    const{teto,consumido,disponivel,percentual,status}=res.dados;
+    if(teto===0){ocultarSaldo();return;}
+    document.getElementById('saldoRow').style.display='grid';
+    document.getElementById('saldoTeto').textContent=fmt(teto);
+    document.getElementById('saldoCons').textContent=fmt(consumido);
+    document.getElementById('saldoDisp').textContent=fmt(disponivel);
+    document.getElementById('saldoDisp').style.color=status==='bloqueado'?'var(--err)':status==='alerta'?'var(--warn)':'var(--ok)';
+    const fill=document.getElementById('saldoFill');
+    fill.style.width=Math.min(percentual,100)+'%';
+    fill.style.background=status==='bloqueado'?'var(--err)':status==='alerta'?'var(--warn)':'var(--ok)';
+    const al=document.getElementById('alertaSaldo');
+    if(status!=='ok'){
+      al.className='alerta '+(status==='bloqueado'?'err':'warn');
+      document.getElementById('alertaSaldoTxt').textContent=status==='bloqueado'?'Limite de '+cat+' atingido. OC será Recurso Próprio se confirmar.':percentual+'% do limite usado. Disponível: '+fmt(disponivel);
+      al.classList.remove('hidden');
+    }else{al.classList.add('hidden');}
+  }catch(e){ocultarSaldo();}
 }
+function ocultarSaldo(){document.getElementById('saldoRow').style.display='none';document.getElementById('alertaSaldo').classList.add('hidden');}
 
 // ── VENCIMENTOS ──
-function adicionarVencimento() {
-  if (vencimentoCount >= 4) { showToast('Máximo de 4 parcelas.','erro'); return; }
-  vencimentoCount++;
-  const n = vencimentoCount;
-  const div = document.createElement('div');
-  div.className = 'venc-row';
-  div.id = 'venc-' + n;
-  div.innerHTML = `
-    <span class="venc-num">${n}ª parcela</span>
-    <div class="field" style="margin:0">
-      <input type="date" id="venc_data_${n}" style="padding:.5rem .75rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.82rem;outline:none;width:100%;transition:border-color .2s">
-    </div>
-    <div class="field" style="margin:0">
-      <input type="number" id="venc_valor_${n}" placeholder="Valor da parcela" step="0.01" style="padding:.5rem .75rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.82rem;outline:none;width:100%;transition:border-color .2s">
-    </div>
-    <button class="btn-rm-venc" onclick="removerVencimento(${n})">✕</button>
-  `;
-  document.getElementById('vencimentosContainer').appendChild(div);
-  if (vencimentoCount >= 4) document.getElementById('btnAddVenc').style.display = 'none';
+function addVenc(){
+  if(vencCount>=4){showToast('Máx. 4 parcelas.','erro');return;}
+  vencCount++;const n=vencCount;
+  const d=document.createElement('div');d.className='venc-row';d.id='v'+n;
+  const inp=`style="padding:.42rem .65rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.82rem;outline:none;width:100%"`;
+  d.innerHTML=`<span class="venc-num">${n}ª</span><input type="date" id="vd${n}" ${inp}><input type="number" id="vv${n}" placeholder="Valor" step="0.01" ${inp}><button class="btn-rm-venc" onclick="rmVenc(${n})">✕</button>`;
+  document.getElementById('vencWrap').appendChild(d);
+  if(vencCount>=4)document.getElementById('btnAddVenc').style.display='none';
 }
-
-function removerVencimento(n) {
-  const el = document.getElementById('venc-' + n);
-  if (el) el.remove();
-  vencimentoCount--;
-  document.getElementById('btnAddVenc').style.display = '';
-  // Renumerar
-  document.querySelectorAll('.venc-row').forEach((row, i) => {
-    const num = i + 1;
-    row.querySelector('.venc-num').textContent = num + 'ª parcela';
+function rmVenc(n){document.getElementById('v'+n)?.remove();vencCount--;document.getElementById('btnAddVenc').style.display='';}
+function coletarVenc(){
+  const v=[];
+  document.querySelectorAll('.venc-row').forEach(r=>{
+    const n=r.id.replace('v','');
+    const d=document.getElementById('vd'+n)?.value,val=document.getElementById('vv'+n)?.value;
+    if(d||val)v.push({data_vencimento:d||'',valor_parcela:parseFloat(val)||0});
   });
-}
-
-function coletarVencimentos() {
-  const vencimentos = [];
-  document.querySelectorAll('.venc-row').forEach((row, i) => {
-    const n = i + 1;
-    const data  = document.getElementById('venc_data_'  + row.id.split('-')[1])?.value;
-    const valor = document.getElementById('venc_valor_' + row.id.split('-')[1])?.value;
-    if (data || valor) {
-      vencimentos.push({ data_vencimento: data || '', valor_parcela: parseFloat(valor) || 0 });
-    }
-  });
-  return vencimentos;
+  return v;
 }
 
 // ── SALVAR OC ──
-async function salvarOC() {
-  const conta      = document.getElementById('oc_conta').value;
-  const categoria  = document.getElementById('oc_categoria').value;
-  const fornecedor = document.getElementById('oc_fornecedor').value.trim();
-  const valor      = document.getElementById('oc_valor').value;
-
-  if (!conta)     { mostrarAlertOC('Selecione a conta.'); return; }
-  if (!categoria) { mostrarAlertOC('Selecione a categoria.'); return; }
-  if (!fornecedor){ mostrarAlertOC('Informe o fornecedor.'); return; }
-  if (!valor || parseFloat(valor) <= 0) { mostrarAlertOC('Informe o valor da OC.'); return; }
-
-  setBtnLoading('btnSalvarOC','btnSalvarOCTxt','btnSalvarOCSpin', true);
-
-  const vencimentos = coletarVencimentos();
-  const payload = {
-    conta, categoria, fornecedor, valor: parseFloat(valor),
-    termo:           document.getElementById('oc_termo').value,
-    ano:             document.getElementById('oc_ano').value,
-    ordem_compras:   document.getElementById('oc_ordem_compras').value,
-    data_oc:         document.getElementById('oc_data_oc').value,
-    solicitacao:     document.getElementById('oc_solicitacao').value,
-    id_idc:          document.getElementById('oc_id_idc').value,
-    forma_pagamento: document.getElementById('oc_forma_pagamento').value,
-    observacoes:     document.getElementById('oc_observacoes').value,
-    vencimentos,
-  };
-
-  try {
-    const res = await api('ocs.salvar', payload);
-    if (!res.ok) { mostrarAlertOC(res.erro); return; }
-    showToast(res.msg, 'sucesso');
-    limparFormOC();
-    OCS_MINHAS = []; // força reload
-  } catch(e) {
-    mostrarAlertOC('Erro de conexão. Tente novamente.');
-  } finally {
-    setBtnLoading('btnSalvarOC','btnSalvarOCTxt','btnSalvarOCSpin', false);
-  }
+async function salvarOC(confirmarRP=false){
+  const conta=document.getElementById('oc_conta').value;
+  const cat=document.getElementById('oc_categoria').value;
+  const forn=document.getElementById('oc_fornecedor').value.trim();
+  const valor=document.getElementById('oc_valor').value;
+  if(!conta){mostrarAlertOC('Selecione a conta.');return;}
+  if(!cat){mostrarAlertOC('Selecione a categoria.');return;}
+  if(!forn){mostrarAlertOC('Informe o fornecedor.');return;}
+  if(!valor||parseFloat(valor)<=0){mostrarAlertOC('Informe o valor.');return;}
+  setLoad(true);
+  const payload={conta,categoria:cat,fornecedor:forn,valor:parseFloat(valor),
+    termo:document.getElementById('oc_termo').value,ano:document.getElementById('oc_ano').value,
+    ordem_compras:document.getElementById('oc_ordem').value,data_oc:document.getElementById('oc_data_oc').value,
+    solicitacao:document.getElementById('oc_sol').value,id_idc:document.getElementById('oc_idc').value,
+    forma_pagamento:document.getElementById('oc_forma').value,observacoes:document.getElementById('oc_obs').value,
+    vencimentos:coletarVenc(),confirmar_recurso_proprio:confirmarRP};
+  if(cat==='INVESTIMENTO')payload.item_investimento_id=document.getElementById('oc_item').value;
+  try{
+    const res=await api('ocs.salvar',payload);
+    if(!res.ok&&res.requer_confirmacao&&res.tipo==='recurso_proprio'){
+      PEND_OC=payload;document.getElementById('modalRPMsg').textContent=res.msg;abrirModal('modalRP');return;
+    }
+    if(!res.ok){mostrarAlertOC(res.erro);return;}
+    showToast(res.msg,res.recurso_proprio?'aviso':'sucesso');limparOC();OCS_MIN=[];
+  }catch(e){mostrarAlertOC('Erro de conexão.');}
+  finally{setLoad(false);}
 }
-
-function limparFormOC() {
-  ['oc_conta','oc_categoria','oc_forma_pagamento'].forEach(id => document.getElementById(id).value = '');
-  ['oc_termo','oc_ano','oc_ordem_compras','oc_data_oc','oc_solicitacao',
-   'oc_id_idc','oc_valor','oc_fornecedor','oc_observacoes'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el && !el.readOnly) el.value = '';
-  });
-  document.getElementById('vencimentosContainer').innerHTML = '';
-  vencimentoCount = 0;
-  document.getElementById('btnAddVenc').style.display = '';
-  document.getElementById('alertCadastroOC').style.display = 'none';
+function confirmarRP(){fecharModal('modalRP');if(PEND_OC){PEND_OC.confirmar_recurso_proprio=true;const p=PEND_OC;PEND_OC=null;salvarOC(true,p);};}
+function salvarOC(confirmarRP=false,payload=null){
+  // sobrescreve se vier payload pronto (do confirmarRP)
+  if(payload){
+    setLoad(true);
+    api('ocs.salvar',payload).then(res=>{
+      if(!res.ok&&res.requer_confirmacao){PEND_OC=payload;document.getElementById('modalRPMsg').textContent=res.msg;abrirModal('modalRP');return;}
+      if(!res.ok){mostrarAlertOC(res.erro);return;}
+      showToast(res.msg,res.recurso_proprio?'aviso':'sucesso');limparOC();OCS_MIN=[];
+    }).catch(e=>mostrarAlertOC('Erro.')).finally(()=>setLoad(false));
+    return;
+  }
+  const conta=document.getElementById('oc_conta').value;const cat=document.getElementById('oc_categoria').value;
+  const forn=document.getElementById('oc_fornecedor').value.trim();const valor=document.getElementById('oc_valor').value;
+  if(!conta){mostrarAlertOC('Selecione a conta.');return;}if(!cat){mostrarAlertOC('Selecione a categoria.');return;}
+  if(!forn){mostrarAlertOC('Informe o fornecedor.');return;}if(!valor||parseFloat(valor)<=0){mostrarAlertOC('Informe o valor.');return;}
+  setLoad(true);
+  const p={conta,categoria:cat,fornecedor:forn,valor:parseFloat(valor),
+    termo:document.getElementById('oc_termo').value,ano:document.getElementById('oc_ano').value,
+    ordem_compras:document.getElementById('oc_ordem').value,data_oc:document.getElementById('oc_data_oc').value,
+    solicitacao:document.getElementById('oc_sol').value,id_idc:document.getElementById('oc_idc').value,
+    forma_pagamento:document.getElementById('oc_forma').value,observacoes:document.getElementById('oc_obs').value,
+    vencimentos:coletarVenc(),confirmar_recurso_proprio:confirmarRP};
+  if(cat==='INVESTIMENTO')p.item_investimento_id=document.getElementById('oc_item').value;
+  api('ocs.salvar',p).then(res=>{
+    if(!res.ok&&res.requer_confirmacao&&res.tipo==='recurso_proprio'){PEND_OC=p;document.getElementById('modalRPMsg').textContent=res.msg;abrirModal('modalRP');return;}
+    if(!res.ok){mostrarAlertOC(res.erro);return;}
+    showToast(res.msg,res.recurso_proprio?'aviso':'sucesso');limparOC();OCS_MIN=[];
+  }).catch(e=>mostrarAlertOC('Erro de conexão.')).finally(()=>setLoad(false));
+}
+function limparOC(){
+  ['oc_conta','oc_categoria','oc_forma'].forEach(id=>document.getElementById(id).value='');
+  ['oc_termo','oc_ano','oc_data_oc','oc_ordem','oc_sol','oc_idc','oc_valor','oc_fornecedor','oc_obs'].forEach(id=>{const el=document.getElementById(id);if(el&&!el.readOnly)el.value='';});
+  document.getElementById('vencWrap').innerHTML='';vencCount=0;document.getElementById('btnAddVenc').style.display='';
+  document.getElementById('alertOC').classList.add('hidden');document.getElementById('catBanner').style.display='none';
+  document.getElementById('secInvest').style.display='none';document.getElementById('secContrato').style.display='none';
   ocultarSaldo();
 }
 
-function mostrarAlertOC(msg) {
-  const el = document.getElementById('alertCadastroOC');
-  el.textContent = msg; el.style.display = 'block';
-}
-
 // ── MINHAS OCs ──
-async function carregarMinhasOCs() {
-  document.getElementById('tbodyMinhas').innerHTML =
-    '<tr><td colspan="9" class="loading-state"><p>Carregando...</p></td></tr>';
-  try {
-    const res = await api('ocs.listar');
-    if (!res.ok) { showToast(res.erro,'erro'); return; }
-    OCS_MINHAS = res.dados || [];
-    renderMinhas(OCS_MINHAS);
-  } catch(e) { showToast('Erro ao carregar OCs.','erro'); }
+async function carregarMinhas(){
+  document.getElementById('tbodyMin').innerHTML='<tr><td colspan="9" class="loading-state"><p>Carregando...</p></td></tr>';
+  try{const res=await api('ocs.listar');if(!res.ok){showToast(res.erro,'erro');return;}OCS_MIN=res.dados||[];filtrarMinhas();}
+  catch(e){showToast('Erro.','erro');}
 }
-
-function filtrarMinhas() {
-  const q = document.getElementById('searchMinhas').value.toLowerCase();
-  renderMinhas(OCS_MINHAS.filter(o =>
-    String(o.conta||'').toLowerCase().includes(q) ||
-    String(o.fornecedor||'').toLowerCase().includes(q) ||
-    String(o.ordem_compras||'').toLowerCase().includes(q)
-  ));
+function filtrarMinhas(){
+  const q=document.getElementById('searchMin').value.toLowerCase();
+  const cat=document.getElementById('filtroMinCat').value;
+  renderMinhas(OCS_MIN.filter(o=>(!cat||o.categoria===cat)&&(!q||[o.conta,o.fornecedor,o.ordem_compras].some(v=>String(v||'').toLowerCase().includes(q)))));
 }
-
-function renderMinhas(lista) {
-  const tbody = document.getElementById('tbodyMinhas');
-  if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="empty-state"><p>Nenhuma OC encontrada</p></td></tr>'; return;
-  }
-  const pillCat = {'CUSTEIO':'pill-c','INVESTIMENTO':'pill-i','CONTRATO':'pill-ct'};
-  tbody.innerHTML = lista.map(o => {
-    const valor = fmt(parseFloat(o.valor||0));
-    const data  = o.data_oc ? new Date(o.data_oc).toLocaleDateString('pt-BR') : '—';
-    const cat   = String(o.categoria||'');
-    const vencList = (o.vencimentos||[]).map(v =>
-      `<div style="font-size:.72rem;color:${v.status==='Pendente'?'var(--warn)':'var(--text-dim)'}">
-        ${v.parcela_numero}ª: ${v.data_vencimento||'—'} · ${fmt(parseFloat(v.valor_parcela||0))}
-       </div>`
-    ).join('') || '<span style="color:var(--text-dim);font-size:.75rem">—</span>';
-
-    return `<tr>
-      <td><strong style="color:var(--cream)">${String(o.conta||'—')}</strong></td>
-      <td>${cat ? `<span class="pill ${pillCat[cat]||''}">${cat}</span>` : '—'}</td>
-      <td>${String(o.fornecedor||'—')}</td>
-      <td style="color:var(--text-dim)">${String(o.ordem_compras||'—')}</td>
-      <td style="color:var(--text-dim)">${data}</td>
-      <td style="color:var(--gold);font-weight:500">${valor}</td>
-      <td><span class="pill ${o.status==='Aberta'?'pill-ab':'pill-pg'}">${String(o.status||'—')}</span></td>
-      <td>${vencList}</td>
-      <td>
-        <button class="btn-icon danger" title="Excluir" onclick="excluirOC('${o.id}')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-        </button>
+function renderMinhas(lista){
+  const tbody=document.getElementById('tbodyMin');
+  if(!lista.length){tbody.innerHTML='<tr><td colspan="9" class="empty-state"><p>Nenhuma OC</p></td></tr>';return;}
+  tbody.innerHTML=lista.map(o=>{
+    const rp=o.recurso_proprio;
+    return`<tr>
+      <td><strong style="color:var(--cream)">${o.conta||'—'}</strong></td>
+      <td>${o.categoria?`<span class="pill ${PILL[o.categoria]||''}">${o.categoria}</span>`:'—'}</td>
+      <td>${o.fornecedor||'—'}</td><td style="color:var(--text-dim)">${o.ordem_compras||'—'}</td>
+      <td style="color:var(--text-dim)">${o.data_oc?new Date(o.data_oc).toLocaleDateString('pt-BR'):'—'}</td>
+      <td style="color:var(--gold);font-weight:500">${fmt(o.valor)}</td>
+      <td><span class="pill ${o.status==='Aberta'?'pill-ab':'pill-pg'}">${o.status||'—'}</span></td>
+      <td>${rp?`<span class="pill pill-rp">Recurso Próprio</span>`:'<span style="color:var(--text-dim);font-size:.7rem">Emenda</span>'}</td>
+      <td style="display:flex;gap:.35rem;align-items:center">
+        ${rp?`<button class="btn-warn" onclick="abrirMudancaConta('${o.id}')">Solicitar mudança</button>`:''}
+        <button class="btn-icon danger" onclick="excluirOC('${o.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
       </td>
     </tr>`;
   }).join('');
 }
+async function excluirOC(id){
+  if(!confirm('Excluir esta OC?'))return;
+  try{const res=await api('ocs.excluir',{id});if(!res.ok){showToast(res.erro,'erro');return;}showToast(res.msg,'sucesso');carregarMinhas();}
+  catch(e){showToast('Erro.','erro');}
+}
 
-async function excluirOC(id) {
-  if (!confirm('Excluir esta OC e seus vencimentos?')) return;
-  try {
-    const res = await api('ocs.excluir', { id });
-    if (!res.ok) { showToast(res.erro,'erro'); return; }
-    showToast(res.msg,'sucesso');
-    carregarMinhasOCs();
-  } catch(e) { showToast('Erro ao excluir.','erro'); }
+// ── SOLICITAR MUDANÇA ──
+function abrirMudancaConta(ocId){
+  REQ_OC_ID=ocId;
+  const sel=document.getElementById('reqConta');
+  sel.innerHTML='<option value="">Selecione...</option>'+CONTAS.map(c=>`<option value="${c.conta}">${c.conta}${c.termo?' — '+c.termo:''}</option>`).join('');
+  document.getElementById('reqMotivo').value='';
+  abrirModal('modalReq');
+}
+async function enviarReq(){
+  const dest=document.getElementById('reqConta').value;
+  const motivo=document.getElementById('reqMotivo').value.trim();
+  if(!dest||!motivo){showToast('Preencha todos os campos.','erro');return;}
+  const oc=OCS_MIN.find(o=>o.id===REQ_OC_ID)||{};
+  try{
+    const res=await api('req.criar',{oc_id:REQ_OC_ID,conta_origem:oc.conta||'',conta_destino:dest,categoria:oc.categoria||'',valor:oc.valor||0,motivo});
+    if(!res.ok){showToast(res.erro,'erro');return;}
+    showToast(res.msg,'sucesso');fecharModal('modalReq');carregarMinhas();
+  }catch(e){showToast('Erro.','erro');}
+}
+
+// ── ITENS DE INVESTIMENTO ──
+async function carregarInvest(){
+  const conta=document.getElementById('filtroInvConta').value;
+  document.getElementById('tbodyInvest').innerHTML='<tr><td colspan="12" class="loading-state"><p>Carregando...</p></td></tr>';
+  try{
+    const res=await api('invest.listar',conta?{conta}:{});
+    if(!res.ok){showToast(res.erro,'erro');return;}
+    INVEST=res.dados||[];renderInvest(INVEST);
+  }catch(e){showToast('Erro.','erro');}
+}
+function renderInvest(lista){
+  const tbody=document.getElementById('tbodyInvest');
+  if(!lista.length){tbody.innerHTML='<tr><td colspan="12" class="empty-state"><p>Nenhum item encontrado</p></td></tr>';return;}
+  tbody.innerHTML=lista.map(item=>`<tr>
+    <td><strong style="color:var(--cream)">${item.conta||'—'}</strong></td>
+    <td style="color:var(--text-dim)">${item.tipo_item||'—'}</td>
+    <td><span style="max-width:140px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${item.descricao||''}">${item.descricao||'—'}</span></td>
+    <td><span style="color:${PRIO_COR[item.prioridade]||'var(--text-dim)'};font-size:.75rem;font-weight:500">${item.prioridade||'—'}</span></td>
+    <td><span class="pill ${STAT_PILL[item.status_validacao]||'pill-pend'}">${item.status_validacao||'Pendente'}</span></td>
+    <td style="text-align:center">${item.quantidade_planejada||0}</td>
+    <td>${fmt(parseFloat(item.valor_total_estimado||0))}</td>
+    <td style="color:var(--ok)">${fmt(item._total_adquirido||0)}</td>
+    <td style="color:${(item._quant_faltam||0)>0?'var(--warn)':'var(--ok)'}">${item._quant_faltam||0}</td>
+    <td style="color:${(item._saldo||0)<0?'var(--err)':'var(--gold)';font-weight:500}">${fmt(item._saldo||0)}</td>
+    <td style="color:${(item._verba_propria||0)>0?'var(--err)':'var(--text-dim)'}">${fmt(item._verba_propria||0)}</td>
+    <td>${['GestorVerbaPublica','AnalistaVerbaPublica','Admin'].includes(SESSAO.cargo)?`<button class="btn-ok" onclick="validarItem('${item.id}')">Validar</button>`:''}</td>
+  </tr>`).join('');
+}
+async function validarItem(id){
+  if(!confirm('Marcar este item como Validado para compra?'))return;
+  try{const res=await api('invest.validar',{id,status_validacao:'Validado'});if(!res.ok){showToast(res.erro,'erro');return;}showToast(res.msg,'sucesso');carregarInvest();}
+  catch(e){showToast('Erro.','erro');}
 }
 
 // ── REGRAS ──
-async function carregarRegras() {
-  try {
-    const [resRegras, resContas] = await Promise.all([
-      api('regras.listar'),
-      api('emendas.contas')
-    ]);
-    const regras = resRegras.ok ? resRegras.dados : [];
-    const contas = resContas.ok ? resContas.dados : [];
-    renderRegras(regras, contas);
-  } catch(e) { showToast('Erro ao carregar regras.','erro'); }
+async function carregarRegras(){
+  try{
+    const[r1,r2]=await Promise.all([api('regras.listar'),api('emendas.contas')]);
+    renderRegras(r1.ok?r1.dados:[],r2.ok?r2.dados:[]);
+  }catch(e){showToast('Erro.','erro');}
 }
-
-function renderRegras(regras, contas) {
-  const container = document.getElementById('regrasContainer');
-  if (!regras.length) {
-    container.innerHTML = '<div class="empty-state"><p>Nenhuma regra definida ainda. Clique em "Nova Regra" para começar.</p></div>';
-    return;
-  }
-  container.innerHTML = regras.map(r => `
-    <div class="regra-row">
-      <div class="field" style="margin:0">
-        <label>Conta</label>
-        <input type="text" value="${String(r.conta||'')}" readonly style="padding:.55rem .8rem;background:rgba(7,21,42,.4);border:1px solid rgba(201,168,76,.15);border-radius:8px;color:var(--text-dim);font-family:DM Sans,sans-serif;font-size:.875rem;outline:none;width:100%">
-      </div>
-      <div class="field" style="margin:0">
-        <label>Categoria</label>
-        <span class="pill ${r.categoria==='CUSTEIO'?'pill-c':r.categoria==='INVESTIMENTO'?'pill-i':'pill-ct'}" style="margin-top:.25rem">${String(r.categoria||'')}</span>
-      </div>
-      <div class="field" style="margin:0">
-        <label>Teto Definido</label>
-        <span style="font-family:Cormorant Garamond,serif;font-size:1.2rem;color:var(--gold)">${fmt(parseFloat(r.valor_teto||0))}</span>
-      </div>
-      <button class="btn-icon danger" title="Remover" style="margin-top:1rem" onclick="showToast('Edite diretamente no Sheets para remover regras.','aviso')">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-  `).join('');
+function renderRegras(regras,contas){
+  const wrap=document.getElementById('regrasWrap');
+  if(!regras.length){wrap.innerHTML='<div class="empty-state"><p>Nenhuma regra. Clique em "+ Nova Regra".</p></div>';return;}
+  wrap.innerHTML=regras.map(r=>`
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:.75rem;align-items:center;padding:.7rem .875rem;background:rgba(7,21,42,.4);border:1px solid rgba(201,168,76,.1);border-radius:10px;margin-bottom:.6rem">
+      <div><div class="field-hint">Conta</div><strong style="color:var(--cream)">${r.conta||'—'}</strong></div>
+      <span class="pill ${PILL[r.categoria]||''}">${r.categoria||'—'}</span>
+      <div><div class="field-hint">Teto</div><span style="font-family:Cormorant Garamond,serif;font-size:1.2rem;color:var(--gold)">${fmt(parseFloat(r.valor_teto||0))}</span></div>
+    </div>`).join('');
 }
-
-function adicionarRegraForm() {
-  const container = document.getElementById('regrasContainer');
-  const id = 'nova-regra-' + Date.now();
-  const contasOpts = CONTAS.map(c => `<option value="${c.conta}">${c.conta}</option>`).join('');
-  const catsOpts   = CARGO_PODE_CATEGORIAS.map(c => `<option>${c}</option>`).join('');
-
-  const div = document.createElement('div');
-  div.id = id;
-  div.className = 'regra-row';
-  div.style.border = '1px solid rgba(201,168,76,.3)';
-  div.innerHTML = `
-    <div class="field" style="margin:0">
-      <label>Conta *</label>
-      <select id="${id}_conta" style="padding:.55rem .8rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.875rem;outline:none;width:100%">
-        <option value="">Selecione...</option>${contasOpts}
-      </select>
-    </div>
-    <div class="field" style="margin:0">
-      <label>Categoria *</label>
-      <select id="${id}_cat" style="padding:.55rem .8rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.875rem;outline:none;width:100%">
-        <option value="">Selecione...</option>${catsOpts}
-      </select>
-    </div>
-    <div class="field" style="margin:0">
-      <label>Teto (R$) *</label>
-      <input type="number" id="${id}_teto" placeholder="0.00" step="0.01" style="padding:.55rem .8rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.875rem;outline:none;width:100%;transition:border-color .2s">
-    </div>
-    <button class="btn-primary" style="margin-top:1rem;padding:.5rem .875rem;font-size:.78rem" onclick="salvarRegraForm('${id}')">Salvar</button>
-  `;
-  container.insertBefore(div, container.firstChild);
+function addRegraForm(){
+  const wrap=document.getElementById('regrasWrap');
+  const id='nr-'+Date.now();
+  const cOpts=CONTAS.map(c=>`<option value="${c.conta}">${c.conta}</option>`).join('');
+  const kOpts=CARGO_CATS.map(c=>`<option>${c}</option>`).join('');
+  const sel=`style="padding:.5rem .75rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.85rem;outline:none;width:100%"`;
+  const div=document.createElement('div');div.id=id;
+  div.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:.7rem;align-items:end;padding:.7rem;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);border-radius:10px;margin-bottom:.6rem';
+  div.innerHTML=`
+    <div class="field" style="margin:0"><label>Conta *</label><select id="${id}_c" ${sel}><option value="">—</option>${cOpts}</select></div>
+    <div class="field" style="margin:0"><label>Categoria *</label><select id="${id}_k" ${sel}><option value="">—</option>${kOpts}</select></div>
+    <div class="field" style="margin:0"><label>Teto (R$) *</label><input type="number" id="${id}_t" placeholder="0.00" step="0.01" style="padding:.5rem .75rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.85rem;outline:none;width:100%;transition:border-color .2s"></div>
+    <button class="btn-primary" style="padding:.5rem .875rem;font-size:.74rem;margin-bottom:0" onclick="salvarRegra('${id}')">Salvar</button>`;
+  wrap.insertBefore(div,wrap.firstChild);
 }
-
-async function salvarRegraForm(id) {
-  const conta = document.getElementById(id + '_conta').value;
-  const cat   = document.getElementById(id + '_cat').value;
-  const teto  = document.getElementById(id + '_teto').value;
-  if (!conta || !cat || !teto) { showToast('Preencha todos os campos.','erro'); return; }
-
-  try {
-    const res = await api('regras.salvar', { conta, categoria: cat, valor_teto: parseFloat(teto) });
-    if (!res.ok) { showToast(res.erro,'erro'); return; }
-    showToast(res.msg,'sucesso');
-    carregarRegras();
-  } catch(e) { showToast('Erro de conexão.','erro'); }
+async function salvarRegra(id){
+  const conta=document.getElementById(id+'_c').value,cat=document.getElementById(id+'_k').value,teto=document.getElementById(id+'_t').value;
+  if(!conta||!cat||!teto){showToast('Preencha todos os campos.','erro');return;}
+  try{const res=await api('regras.salvar',{conta,categoria:cat,valor_teto:parseFloat(teto)});if(!res.ok){showToast(res.erro,'erro');return;}showToast(res.msg,'sucesso');carregarRegras();}
+  catch(e){showToast('Erro.','erro');}
 }
 
 // ── CONSOLIDADO ──
-async function carregarConsolidado() {
-  document.getElementById('tbodyConsolidado').innerHTML =
-    '<tr><td colspan="10" class="loading-state"><p>Carregando...</p></td></tr>';
-  try {
-    const res = await api('ocs.consolidado', {
-      conta:     document.getElementById('filtroConta').value,
-      categoria: document.getElementById('filtroCategoria').value,
-      pesquisa:  document.getElementById('searchConsolidado').value,
-    });
-    if (!res.ok) { showToast(res.erro,'erro'); return; }
-    OCS_CONSOLIDADO = res.dados || [];
-    renderConsolidado(OCS_CONSOLIDADO);
-  } catch(e) { showToast('Erro ao carregar consolidado.','erro'); }
+async function carregarCons(){
+  document.getElementById('tbodyCons').innerHTML='<tr><td colspan="9" class="loading-state"><p>Carregando...</p></td></tr>';
+  try{
+    const res=await api('ocs.consolidado',{conta:document.getElementById('filtroConsConta').value,categoria:document.getElementById('filtroConsCat').value});
+    if(!res.ok){showToast(res.erro,'erro');return;}
+    const todos=res.dados||[];
+    OCS_CONS=todos.filter(o=>!o.recurso_proprio);
+    OCS_RP=todos.filter(o=>o.recurso_proprio);
+    renderCons(OCS_CONS);
+  }catch(e){showToast('Erro.','erro');}
+}
+function filtrarCons(){
+  const q=document.getElementById('searchCons').value.toLowerCase();
+  const cnt=document.getElementById('filtroConsConta').value;
+  const cat=document.getElementById('filtroConsCat').value;
+  renderCons(OCS_CONS.filter(o=>(!cnt||o.conta===cnt)&&(!cat||o.categoria===cat)&&(!q||[o.conta,o.fornecedor,o.comprador].some(v=>String(v||'').toLowerCase().includes(q)))));
+}
+function renderCons(lista){
+  const tbody=document.getElementById('tbodyCons');
+  if(!lista.length){tbody.innerHTML='<tr><td colspan="9" class="empty-state"><p>Nenhuma OC</p></td></tr>';document.getElementById('footerCons').style.display='none';return;}
+  const tv=lista.reduce((s,o)=>s+(o.valor||0),0),tp=lista.reduce((s,o)=>s+(o.total_pago||0),0);
+  tbody.innerHTML=lista.map(o=>{const saldo=parseFloat(o.saldo_oc||0);return`<tr>
+    <td>${o.comprador||'—'}</td><td><strong style="color:var(--cream)">${o.conta||'—'}</strong></td>
+    <td>${o.categoria?`<span class="pill ${PILL[o.categoria]||''}">${o.categoria}</span>`:'—'}</td>
+    <td>${o.fornecedor||'—'}</td><td style="color:var(--text-dim)">${o.ordem_compras||'—'}</td>
+    <td style="color:var(--gold);font-weight:500">${fmt(o.valor||0)}</td>
+    <td style="color:var(--ok)">${fmt(o.total_pago||0)}</td>
+    <td style="color:${saldo<0?'var(--err)':'var(--text)'}">${fmt(saldo)}</td>
+    <td><span class="pill ${o.status==='Aberta'?'pill-ab':'pill-pg'}">${o.status||'—'}</span></td>
+  </tr>`;}).join('');
+  document.getElementById('footerCons').style.display='block';
+  document.getElementById('footerCons').innerHTML=`${lista.length} OC(s) · Total: <strong style="color:var(--gold)">${fmt(tv)}</strong> · Pago: <strong style="color:var(--ok)">${fmt(tp)}</strong>`;
 }
 
-function filtrarConsolidado() {
-  const q   = document.getElementById('searchConsolidado').value.toLowerCase();
-  const cnt = document.getElementById('filtroConta').value;
-  const cat = document.getElementById('filtroCategoria').value;
-  renderConsolidado(OCS_CONSOLIDADO.filter(o =>
-    (!cnt || o.conta === cnt) &&
-    (!cat || o.categoria === cat) &&
-    (!q   || [o.conta,o.fornecedor,o.comprador,o.ordem_compras].some(v => String(v||'').toLowerCase().includes(q)))
-  ));
+function filtrarRP(cat){
+  RP_CAT_ATUAL=cat;
+  document.querySelectorAll('#sub-recurso .sub-tabs .sub-tab').forEach((el,i)=>el.classList.toggle('active',['CUSTEIO','INVESTIMENTO','CONTRATO'][i]===cat));
+  renderRP(cat);
 }
-
-function renderConsolidado(lista) {
-  const tbody = document.getElementById('tbodyConsolidado');
-  if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="empty-state"><p>Nenhuma OC encontrada</p></td></tr>';
-    document.getElementById('consolidadoFooter').style.display = 'none'; return;
-  }
-  const pillCat = {'CUSTEIO':'pill-c','INVESTIMENTO':'pill-i','CONTRATO':'pill-ct'};
-  const totalValor = lista.reduce((s,o)=>s+(parseFloat(o.valor)||0),0);
-  const totalPago  = lista.reduce((s,o)=>s+(parseFloat(o.total_pago)||0),0);
-
-  tbody.innerHTML = lista.map(o => {
-    const cat   = String(o.categoria||'');
-    const saldo = parseFloat(o.saldo_oc||0);
-    return `<tr>
-      <td>${String(o.comprador||'—')}</td>
-      <td><strong style="color:var(--cream)">${String(o.conta||'—')}</strong></td>
-      <td>${cat ? `<span class="pill ${pillCat[cat]||''}">${cat}</span>` : '—'}</td>
-      <td>${String(o.fornecedor||'—')}</td>
-      <td style="color:var(--text-dim)">${String(o.ordem_compras||'—')}</td>
-      <td style="color:var(--text-dim)">${o.data_oc ? new Date(o.data_oc).toLocaleDateString('pt-BR') : '—'}</td>
-      <td style="color:var(--gold);font-weight:500">${fmt(parseFloat(o.valor||0))}</td>
-      <td style="color:var(--ok)">${fmt(parseFloat(o.total_pago||0))}</td>
-      <td style="color:${saldo<0?'var(--err)':'var(--text)'}">${fmt(saldo)}</td>
-      <td><span class="pill ${o.status==='Aberta'?'pill-ab':'pill-pg'}">${String(o.status||'—')}</span></td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('consolidadoFooter').style.display = 'block';
-  document.getElementById('consolidadoFooter').innerHTML =
-    `${lista.length} OC(s) · Total: <strong style="color:var(--gold)">${fmt(totalValor)}</strong> · Pago: <strong style="color:var(--ok)">${fmt(totalPago)}</strong>`;
+function renderRP(cat){
+  const lista=OCS_RP.filter(o=>o.categoria===cat);
+  const body=document.getElementById('rpBody');
+  if(!lista.length){body.innerHTML=`<div class="empty-state"><p>Nenhuma OC de Recurso Próprio em ${cat}</p></div>`;return;}
+  body.innerHTML=`<div class="panel"><div class="tbl-wrap"><table>
+    <thead><tr><th>COMPRADOR</th><th>CONTA</th><th>FORNECEDOR</th><th>VALOR</th><th>DATA</th><th>SOLICITAÇÃO</th></tr></thead>
+    <tbody>${lista.map(o=>`<tr>
+      <td>${o.comprador||'—'}</td><td><strong style="color:var(--cream)">${o.conta||'—'}</strong></td>
+      <td>${o.fornecedor||'—'}</td>
+      <td style="color:var(--err);font-weight:500">${fmt(o.valor||0)}</td>
+      <td style="color:var(--text-dim)">${o.data_oc?new Date(o.data_oc).toLocaleDateString('pt-BR'):'—'}</td>
+      <td><button class="btn-warn" onclick="abrirMudancaConta('${o.id}')">Solicitar mudança de conta</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div></div>`;
 }
 
 // ── HELPERS ──
-function fmt(n) { return (n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
-
-function setBtnLoading(btnId, txtId, spinId, loading) {
-  document.getElementById(btnId).disabled = loading;
-  document.getElementById(txtId).style.display = loading ? 'none' : 'inline';
-  document.getElementById(spinId).style.display = loading ? 'inline-block' : 'none';
-}
-
+function fmt(n){return(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function mostrarAlertOC(msg){const el=document.getElementById('alertOC');el.className='alerta err';document.getElementById('alertOCTxt').textContent=msg;el.classList.remove('hidden');}
+function setLoad(on){document.getElementById('btnSalvar').disabled=on;document.getElementById('btnSalvarTxt').style.display=on?'none':'inline';document.getElementById('btnSalvarSpin').style.display=on?'inline-block':'none';}
+function abrirModal(id){document.getElementById(id).classList.add('open');}
+function fecharModal(id){document.getElementById(id).classList.remove('open');}
 let toastTimer;
-function showToast(msg, tipo='sucesso') {
-  const el = document.getElementById('toast');
-  el.className = 'toast ' + tipo;
-  el.innerHTML = (tipo==='sucesso'
-    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>'
-    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
-  ) + `<span>${msg}</span>`;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 4000);
+function showToast(msg,tipo='sucesso'){
+  const el=document.getElementById('toast');el.className='toast '+tipo;el.innerHTML=`<span>${msg}</span>`;
+  el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),4000);
 }
-
-async function logout() {
-  if (!confirm('Deseja sair?')) return;
-  try { await api('logout'); } catch(e) {}
-  localStorage.clear();
-  window.location.href = 'index.html';
-}
+async function logout(){if(!confirm('Sair?'))return;try{await api('logout');}catch(e){}localStorage.clear();window.location.href='index.html';}
+['modalRP','modalReq'].forEach(id=>{document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)fecharModal(id);});});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){fecharModal('modalRP');fecharModal('modalReq');}});
 </script>
 </body>
 </html>
