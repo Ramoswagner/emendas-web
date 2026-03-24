@@ -452,7 +452,7 @@
 
     </form>
 
-    <!-- Footer  -->
+    <!-- Footer -->
     <div class="card-footer">
       <p>Acesso permitido somente a colaboradores autorizados</p>
       <span class="version-tag">v1.0 · Fase 1</span>
@@ -527,9 +527,11 @@ async function chamarAPI(acao, payload, token = null) {
   const body = { acao, payload };
   if (token) body.token = token;
 
+  // Content-Type text/plain evita preflight OPTIONS
+  // que causa erro de CORS ao abrir via file:// ou GitHub Pages
   const res = await fetch(API_URL, {
     method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'text/plain' },
     body:    JSON.stringify(body),
   });
 
