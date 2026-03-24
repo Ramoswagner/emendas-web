@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Emendas — Hospital da Baleia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* ── RESET & BASE ─────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:       #07152a;
+    --navy-mid:   #0d2240;
+    --navy-light: #163561;
+    --gold:       #c9a84c;
+    --gold-light: #e8c96d;
+    --gold-dim:   #8a6f2e;
+    --cream:      #f5f0e8;
+    --text:       #e8e4dc;
+    --text-dim:   #8fa3b8;
+    --error:      #e05a5a;
+    --success:    #4caf82;
+    --border:     rgba(201, 168, 76, 0.25);
+    --glow:       rgba(201, 168, 76, 0.12);
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  /* ── BACKGROUND ANIMADO ───────────────────────────────── */
+  .bg {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 40%, rgba(22, 53, 97, 0.6) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 70%, rgba(13, 34, 64, 0.8) 0%, transparent 55%),
+      radial-gradient(ellipse 100% 100% at 50% 50%, #07152a 0%, #040e1c 100%);
+    z-index: 0;
+  }
+
+  .bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(201,168,76,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 20%, rgba(201,168,76,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 70%, rgba(201,168,76,0.15) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 85%, rgba(201,168,76,0.2) 0%, transparent 100%),
+      radial-gradient(2px 2px at 15% 60%, rgba(201,168,76,0.1) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 50%, rgba(201,168,76,0.25) 0%, transparent 100%);
+    background-size: 400px 400px;
+    animation: drift 20s linear infinite;
+  }
+
+  @keyframes drift {
+    0%   { transform: translateY(0px); }
+    50%  { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+  }
+
+  /* Linha decorativa superior */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent 0%, var(--gold) 40%, var(--gold-light) 60%, transparent 100%);
+    z-index: 10;
+  }
+
+  /* ── LAYOUT CENTRAL ───────────────────────────────────── */
+  .wrapper {
+    position: relative; z-index: 1;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 440px;
+    background: rgba(13, 34, 64, 0.75);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 3rem 2.75rem;
+    backdrop-filter: blur(24px);
+    box-shadow:
+      0 0 0 1px rgba(201,168,76,0.08),
+      0 32px 64px rgba(0, 0, 0, 0.5),
+      0 0 80px rgba(201,168,76,0.05) inset;
+    animation: cardIn 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  @keyframes cardIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── HEADER DO CARD ───────────────────────────────────── */
+  .card-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .logo-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: rgba(201,168,76,0.08);
+    margin-bottom: 1.5rem;
+    animation: logoGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes logoGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
+    50%       { box-shadow: 0 0 24px 4px rgba(201,168,76,0.15); }
+  }
+
+  .logo-svg { width: 32px; height: 32px; }
+
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--cream);
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-subtitle {
+    font-size: 0.78rem;
+    font-weight: 300;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* ── DIVISOR ──────────────────────────────────────────── */
+  .divider {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+  .divider span {
+    font-size: 0.7rem; letter-spacing: 0.2em;
+    color: var(--gold-dim); text-transform: uppercase;
+  }
+
+  /* ── FORMULÁRIO ───────────────────────────────────────── */
+  .form-group {
+    margin-bottom: 1.25rem;
+    animation: fieldIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  .form-group:nth-child(1) { animation-delay: 0.15s; }
+  .form-group:nth-child(2) { animation-delay: 0.25s; }
+
+  @keyframes fieldIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  label {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  .input-icon {
+    position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    pointer-events: none;
+    transition: color 0.2s;
+  }
+
+  input[type="text"],
+  input[type="password"] {
+    width: 100%;
+    padding: 0.875rem 1rem 0.875rem 2.75rem;
+    background: rgba(7, 21, 42, 0.6);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 300;
+    outline: none;
+    transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+    letter-spacing: 0.02em;
+  }
+
+  input[type="text"]:focus,
+  input[type="password"]:focus {
+    border-color: var(--gold);
+    background: rgba(7, 21, 42, 0.8);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.1), 0 0 20px rgba(201,168,76,0.05);
+  }
+
+  input[type="text"]:focus + .input-border,
+  input[type="password"]:focus + .input-border { opacity: 1; }
+
+  input::placeholder { color: rgba(143,163,184,0.5); }
+
+  /* Toggle senha */
+  .toggle-senha {
+    position: absolute; right: 14px; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none;
+    color: var(--text-dim); cursor: pointer;
+    padding: 0; line-height: 1;
+    transition: color 0.2s;
+  }
+  .toggle-senha:hover { color: var(--gold); }
+
+  /* ── ALERTA DE ERRO / SUCESSO ─────────────────────────── */
+  .alert {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+    display: none;
+    align-items: flex-start;
+    gap: 0.6rem;
+    animation: alertIn 0.3s ease;
+  }
+  .alert.show { display: flex; }
+  .alert.erro {
+    background: rgba(224, 90, 90, 0.12);
+    border: 1px solid rgba(224, 90, 90, 0.3);
+    color: #f08080;
+  }
+  .alert.sucesso {
+    background: rgba(76, 175, 130, 0.12);
+    border: 1px solid rgba(76, 175, 130, 0.3);
+    color: #6dd6a8;
+  }
+
+  @keyframes alertIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── BOTÃO ────────────────────────────────────────────── */
+  .btn-login {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.95rem 1.5rem;
+    background: linear-gradient(135deg, var(--gold-dim) 0%, var(--gold) 50%, var(--gold-light) 100%);
+    border: none;
+    border-radius: 8px;
+    color: var(--navy);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: fieldIn 0.6s 0.35s cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
+  .btn-login::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+    transform: translateX(-100%) skewX(-15deg);
+    transition: transform 0.5s;
+  }
+
+  .btn-login:hover::before { transform: translateX(200%) skewX(-15deg); }
+
+  .btn-login:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(201,168,76,0.3);
+  }
+
+  .btn-login:active { transform: translateY(0); }
+
+  .btn-login:disabled {
+    opacity: 0.6; cursor: not-allowed;
+    transform: none; box-shadow: none;
+  }
+
+  .btn-login .spinner {
+    display: none;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(7,21,42,0.3);
+    border-top-color: var(--navy);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .btn-login.loading .btn-text { display: none; }
+  .btn-login.loading .spinner  { display: block; }
+
+  /* ── SHAKE ANIMATION ─────────────────────────────────── */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-6px); }
+    40%       { transform: translateX(6px); }
+    60%       { transform: translateX(-4px); }
+    80%       { transform: translateX(4px); }
+  }
+  .shake { animation: shake 0.4s ease; }
+
+  /* ── FOOTER ───────────────────────────────────────────── */
+  .card-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(201,168,76,0.1);
+    text-align: center;
+    animation: fieldIn 0.6s 0.45s cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
+  .card-footer p {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .version-tag {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 20px;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--gold-dim);
+  }
+
+  /* ── RESPONSIVE ───────────────────────────────────────── */
+  @media (max-width: 480px) {
+    .card { padding: 2rem 1.5rem; }
+    .card-title { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar"></div>
+<div class="bg"></div>
+
+<div class="wrapper">
+  <div class="card">
+
+    <!-- Header -->
+    <div class="card-header">
+      <div class="logo-wrap">
+        <!-- Ícone de baleia estilizado em SVG -->
+        <svg class="logo-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 20C4 20 7 14 16 14C25 14 28 18 28 18C28 18 25 24 20 25C15 26 10 24 7 22L4 20Z"
+            fill="none" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 20L2 17C2 17 4 12 9 11"
+            fill="none" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="22" cy="18" r="1.5" fill="#c9a84c" opacity="0.8"/>
+          <path d="M20 25C20 25 19 28 17 28C15 28 16 25 16 25"
+            fill="none" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 14C16 14 14 10 18 8"
+            fill="none" stroke="#c9a84c" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+      </div>
+      <h1 class="card-title">Gestão de Emendas</h1>
+      <p class="card-subtitle">Hospital da Baleia · Núcleo de Projetos</p>
+    </div>
+
+    <!-- Divisor -->
+    <div class="divider"><span>acesso restrito</span></div>
+
+    <!-- Mensagem de erro/sucesso -->
+    <div class="alert erro" id="alertErro">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="alertErroMsg">Usuário ou senha inválidos.</span>
+    </div>
+
+    <div class="alert sucesso" id="alertSucesso">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <span id="alertSucessoMsg">Login realizado. Redirecionando...</span>
+    </div>
+
+    <!-- Formulário -->
+    <form id="loginForm" autocomplete="off" novalidate>
+
+      <div class="form-group">
+        <label for="usuario">Usuário</label>
+        <div class="input-wrap">
+          <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <input type="text" id="usuario" name="usuario"
+            placeholder="seu.usuario" autocomplete="username" spellcheck="false">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <div class="input-wrap">
+          <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+          <input type="password" id="senha" name="senha"
+            placeholder="••••••••" autocomplete="current-password">
+          <button type="button" class="toggle-senha" id="toggleSenha" title="Mostrar/ocultar senha">
+            <svg id="iconOlho" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" id="btnLogin">
+        <span class="btn-text">Entrar</span>
+        <span class="spinner"></span>
+      </button>
+
+    </form>
+
+    <!-- Footer  -->
+    <div class="card-footer">
+      <p>Acesso permitido somente a colaboradores autorizados</p>
+      <span class="version-tag">v1.0 · Fase 1</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONFIGURAÇÃO — Cole aqui a URL do seu Apps Script
+// ══════════════════════════════════════════════════════════
+const API_URL = 'https://script.google.com/macros/s/AKfycbyjEoIbY8BpSRfMvPpRWmy4WYSiTlvl9bbZ70XYE-KBvPGfjNSvg13Oa5iVYqb1RnKt/exec';
+// Exemplo:
+// const API_URL = 'https://script.google.com/macros/s/AKfyc.../exec';
+
+// ══════════════════════════════════════════════════════════
+// SHA-256 no browser (Web Crypto API)
+// ══════════════════════════════════════════════════════════
+async function sha256(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// UI helpers
+// ══════════════════════════════════════════════════════════
+function mostrarErro(msg) {
+  const alerta = document.getElementById('alertErro');
+  document.getElementById('alertErroMsg').textContent = msg;
+  alerta.classList.add('show');
+  document.getElementById('alertSucesso').classList.remove('show');
+  document.getElementById('loginForm').classList.add('shake');
+  setTimeout(() => document.getElementById('loginForm').classList.remove('shake'), 400);
+}
+
+function mostrarSucesso(msg) {
+  document.getElementById('alertErro').classList.remove('show');
+  const alerta = document.getElementById('alertSucesso');
+  document.getElementById('alertSucessoMsg').textContent = msg;
+  alerta.classList.add('show');
+}
+
+function setLoading(loading) {
+  const btn = document.getElementById('btnLogin');
+  btn.disabled = loading;
+  btn.classList.toggle('loading', loading);
+}
+
+// ══════════════════════════════════════════════════════════
+// Toggle visibilidade da senha
+// ══════════════════════════════════════════════════════════
+document.getElementById('toggleSenha').addEventListener('click', () => {
+  const input = document.getElementById('senha');
+  const icon  = document.getElementById('iconOlho');
+  const mostrar = input.type === 'password';
+  input.type = mostrar ? 'text' : 'password';
+  icon.innerHTML = mostrar
+    ? `<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+       <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+       <line x1="1" y1="1" x2="23" y2="23" stroke-linecap="round"/>`
+    : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+       <circle cx="12" cy="12" r="3"/>`;
+});
+
+// ══════════════════════════════════════════════════════════
+// Chamada à API
+// ══════════════════════════════════════════════════════════
+async function chamarAPI(acao, payload, token = null) {
+  const body = { acao, payload };
+  if (token) body.token = token;
+
+  const res = await fetch(API_URL, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(body),
+  });
+
+  if (!res.ok) throw new Error('Erro de rede: ' + res.status);
+  return res.json();
+}
+
+// ══════════════════════════════════════════════════════════
+// Redirecionamento pós-login (adaptar conforme módulos prontos)
+// ══════════════════════════════════════════════════════════
+function redirecionar(usuario) {
+  const rotas = {
+    'RG':            'rg.html',
+    'Compras':       'compras.html',
+    'Financeiro':    'financeiro.html',
+    'Contabilidade': 'contabilidade.html',
+    'NucleoProj':    'admin.html',
+  };
+
+  // Por enquanto, todos vão para admin (tela de usuários — Fase 1)
+  const destino = rotas[usuario.setor] || 'admin.html';
+  window.location.href = destino + '?sessao=' + encodeURIComponent(JSON.stringify({
+    setor:  usuario.setor,
+    cargo:  usuario.cargo,
+    nome:   usuario.nome,
+  }));
+}
+
+// ══════════════════════════════════════════════════════════
+// Submit do formulário
+// ══════════════════════════════════════════════════════════
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const usuario = document.getElementById('usuario').value.trim();
+  const senha   = document.getElementById('senha').value;
+
+  // Validação básica no frontend
+  if (!usuario) { mostrarErro('Informe o usuário.'); return; }
+  if (!senha)   { mostrarErro('Informe a senha.');   return; }
+  if (API_URL === 'COLE_AQUI_A_URL_DO_APPS_SCRIPT') {
+    mostrarErro('Configure a API_URL no arquivo login.html antes de usar o sistema.');
+    return;
+  }
+
+  setLoading(true);
+  document.getElementById('alertErro').classList.remove('show');
+
+  try {
+    // Hash da senha no browser antes de enviar
+    const senhaHash = await sha256(senha);
+
+    const res = await chamarAPI('login', { usuario, senha: senhaHash });
+
+    if (!res.ok) {
+      mostrarErro(res.erro || 'Erro desconhecido. Tente novamente.');
+      return;
+    }
+
+    // Salvar sessão no localStorage
+    localStorage.setItem('emendas_token',   res.token);
+    localStorage.setItem('emendas_usuario', JSON.stringify(res.usuario));
+
+    mostrarSucesso('Bem-vindo(a), ' + res.usuario.nome.split(' ')[0] + '. Redirecionando...');
+
+    setTimeout(() => redirecionar(res.usuario), 1200);
+
+  } catch (err) {
+    mostrarErro('Não foi possível conectar ao servidor. Verifique sua internet.');
+    console.error('Erro login:', err);
+  } finally {
+    setLoading(false);
+  }
+});
+
+// ══════════════════════════════════════════════════════════
+// Checar se já existe sessão ativa
+// ══════════════════════════════════════════════════════════
+(function verificarSessaoAtiva() {
+  const token   = localStorage.getItem('emendas_token');
+  const usuarioStr = localStorage.getItem('emendas_usuario');
+  if (token && usuarioStr) {
+    try {
+      const usuario = JSON.parse(usuarioStr);
+      mostrarSucesso('Sessão ativa. Redirecionando...');
+      setTimeout(() => redirecionar(usuario), 800);
+    } catch(e) {
+      localStorage.clear();
+    }
+  }
+})();
+
+// Enter no campo usuário vai para senha
+document.getElementById('usuario').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('senha').focus();
+});
+
+// Foco inicial
+document.getElementById('usuario').focus();
+</script>
+</body>
+</html>
