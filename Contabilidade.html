@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contabilidade — Gestão de Emendas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --navy:#07152a;--navy-card:rgba(13,34,64,.75);
+    --gold:#c9a84c;--gold-light:#e8c96d;--gold-dim:#8a6f2e;
+    --cream:#f5f0e8;--text:#e8e4dc;--text-dim:#8fa3b8;
+    --border:rgba(201,168,76,.2);
+    --ok:#4caf82;--warn:#e09a3a;--err:#e05a5a;--crit:#ff4444;--azul:#5b9bd5;
+    --sidebar-w:240px;
+  }
+  html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);overflow-x:hidden}
+  .bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 10% 30%,rgba(22,53,97,.5) 0%,transparent 60%),#07152a}
+  .top-bar{position:fixed;top:0;left:0;right:0;height:3px;z-index:100;background:linear-gradient(90deg,transparent,var(--gold) 40%,var(--gold-light) 60%,transparent)}
+  .layout{position:relative;z-index:1;display:flex;min-height:100vh;padding-top:3px}
+
+  /* SIDEBAR */
+  .sidebar{width:var(--sidebar-w);min-height:100vh;background:rgba(7,21,42,.92);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:3px;bottom:0;backdrop-filter:blur(20px);z-index:50}
+  .sidebar-header{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid var(--border)}
+  .logo-row{display:flex;align-items:center;gap:.65rem}
+  .logo-icon{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:rgba(201,168,76,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .logo-text{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:500;color:var(--cream)}
+  .logo-sub{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dim)}
+  .nav{flex:1;padding:.75rem 0}
+  .nav-label{padding:.4rem 1.25rem .2rem;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-dim);font-weight:500}
+  .nav-item{display:flex;align-items:center;gap:.65rem;padding:.6rem 1.25rem;color:var(--text-dim);cursor:pointer;transition:all .2s;font-size:.82rem;border-left:2px solid transparent;text-decoration:none}
+  .nav-item:hover{color:var(--text);background:rgba(201,168,76,.05)}
+  .nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,168,76,.08)}
+  .sidebar-footer{padding:.875rem 1.25rem;border-top:1px solid var(--border)}
+  .user-info{display:flex;align-items:center;gap:.65rem;margin-bottom:.65rem}
+  .user-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dim),var(--gold));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:500;color:var(--navy);flex-shrink:0}
+  .user-name{font-size:.8rem;color:var(--text);font-weight:500}
+  .user-role{font-size:.67rem;color:var(--text-dim)}
+  .btn-logout{width:100%;padding:.45rem;background:rgba(224,90,90,.08);border:1px solid rgba(224,90,90,.2);border-radius:6px;color:#f08080;font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:all .2s;font-family:inherit}
+  .btn-logout:hover{background:rgba(224,90,90,.15)}
+
+  /* MAIN */
+  .main{margin-left:var(--sidebar-w);flex:1;padding:1.75rem 2rem;animation:fadeIn .5s .1s both}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  /* TABS */
+  .tabs-bar{display:flex;gap:0;margin-bottom:1.75rem;border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .tab-btn{padding:.7rem 1.35rem;font-size:.8rem;font-weight:500;color:var(--text-dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;font-family:inherit;display:flex;align-items:center;gap:.45rem}
+  .tab-btn:hover{color:var(--text)}
+  .tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+  .tab-btn.hidden{display:none}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+
+  /* STATS CARDS */
+  .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:.875rem;margin-bottom:1.5rem}
+  .stat-card{background:var(--navy-card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;backdrop-filter:blur(16px);cursor:pointer;transition:border-color .2s}
+  .stat-card:hover{border-color:rgba(201,168,76,.4)}
+  .stat-card.active-filter{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+  .stat-label{font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:.35rem}
+  .stat-value{font-family:'Cormorant Garamond',serif;font-size:1.65rem;font-weight:500;color:var(--cream)}
+
+  /* PANEL */
+  .panel{background:var(--navy-card);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(16px);overflow:hidden;margin-bottom:1.25rem}
+  .panel-header{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+  .panel-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:500;color:var(--cream)}
+
+  /* TABELA */
+  .tbl-controls{padding:.875rem 1.5rem;border-bottom:1px solid var(--border);display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
+  .search-wrap{position:relative}
+  .search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none}
+  input.search{padding:.5rem 1rem .5rem 2.25rem;background:rgba(7,21,42,.6);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.8rem;outline:none;width:220px;transition:border-color .2s}
+  input.search:focus{border-color:var(--gold)}
+  input.search::placeholder{color:rgba(143,163,184,.5)}
+  select.filter{padding:.5rem .875rem;background:rgba(7,21,42,.6);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.8rem;outline:none}
+  select.filter option{background:#0d2240}
+  .tbl-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:.8rem}
+  thead tr{background:rgba(7,21,42,.5)}
+  th{padding:.6rem .875rem;text-align:left;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim);font-weight:500;white-space:nowrap;border-bottom:1px solid var(--border)}
+  td{padding:.7rem .875rem;color:var(--text);border-bottom:1px solid rgba(201,168,76,.06);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tbody tr{transition:background .15s}
+  tbody tr:hover{background:rgba(201,168,76,.04)}
+  .tbl-footer{padding:.75rem 1.5rem;border-top:1px solid var(--border);font-size:.75rem;color:var(--text-dim)}
+  .empty-state,.loading-state{text-align:center;padding:2.5rem 1rem;color:var(--text-dim);font-size:.82rem}
+
+  /* SEVERITY BADGES */
+  .sev{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:20px;font-size:.68rem;font-weight:500;white-space:nowrap}
+  .sev-critico{background:rgba(255,68,68,.15);color:#ff8080;border:1px solid rgba(255,68,68,.3)}
+  .sev-vermelho{background:rgba(224,90,90,.12);color:#f08080;border:1px solid rgba(224,90,90,.3)}
+  .sev-amarelo{background:rgba(224,154,58,.12);color:#f5c56d;border:1px solid rgba(224,154,58,.3)}
+  .sev-normal{background:rgba(76,175,130,.1);color:var(--ok);border:1px solid rgba(76,175,130,.2)}
+  .sev-azul{background:rgba(91,155,213,.12);color:var(--azul);border:1px solid rgba(91,155,213,.3)}
+
+  /* PILL */
+  .pill{display:inline-flex;align-items:center;padding:.17rem .55rem;border-radius:20px;font-size:.68rem;font-weight:500;white-space:nowrap}
+  .pill-sim{background:rgba(76,175,130,.1);color:var(--ok);border:1px solid rgba(76,175,130,.2)}
+  .pill-nao{background:rgba(224,90,90,.1);color:#f08080;border:1px solid rgba(224,90,90,.2)}
+  .pill-pend{background:rgba(224,154,58,.1);color:#f5c56d;border:1px solid rgba(224,154,58,.2)}
+
+  /* BOTÕES */
+  .btn-primary{padding:.6rem 1.3rem;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border:none;border-radius:8px;color:var(--navy);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;transition:all .2s}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(201,168,76,.25)}
+  .btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
+  .btn-secondary{padding:.55rem 1rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text-dim);font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;transition:all .2s}
+  .btn-secondary:hover{border-color:rgba(201,168,76,.4);color:var(--text)}
+  .btn-sm{padding:.28rem .65rem;border-radius:6px;font-size:.72rem;cursor:pointer;font-family:inherit;border:1px solid;white-space:nowrap;transition:all .15s}
+  .btn-sm-gold{background:rgba(201,168,76,.1);color:var(--gold);border-color:rgba(201,168,76,.25)}
+  .btn-sm-gold:hover{background:rgba(201,168,76,.2)}
+  .btn-sm-ok{background:rgba(76,175,130,.1);color:var(--ok);border-color:rgba(76,175,130,.25)}
+  .btn-sm-ok:hover{background:rgba(76,175,130,.2)}
+  .btn-sm-err{background:rgba(224,90,90,.1);color:#f08080;border-color:rgba(224,90,90,.25)}
+  .btn-sm-err:hover{background:rgba(224,90,90,.18)}
+  .btn-sm-warn{background:rgba(224,154,58,.1);color:#f5c56d;border-color:rgba(224,154,58,.25)}
+  .btn-sm-warn:hover{background:rgba(224,154,58,.18)}
+
+  .spinner-sm{display:inline-block;width:14px;height:14px;border:2px solid rgba(7,21,42,.3);border-top-color:#07152a;border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(4,12,24,.88);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .25s}
+  .modal-overlay.open{opacity:1;pointer-events:all}
+  .modal{background:#0d2240;border:1px solid var(--border);border-radius:16px;width:100%;max-width:500px;box-shadow:0 32px 64px rgba(0,0,0,.6);transform:translateY(20px) scale(.97);transition:transform .3s cubic-bezier(.23,1,.32,1);overflow:hidden}
+  .modal-overlay.open .modal{transform:translateY(0) scale(1)}
+  .modal-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .modal-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:500;color:var(--cream)}
+  .modal-body{padding:1.25rem 1.5rem}
+  .modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.75rem}
+  .modal-info{background:rgba(7,21,42,.5);border:1px solid var(--border);border-radius:8px;padding:.875rem;margin-bottom:1rem;font-size:.82rem}
+  .modal-info div{display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid rgba(201,168,76,.06)}
+  .modal-info div:last-child{border-bottom:none}
+  .modal-info span:first-child{color:var(--text-dim)}
+  .modal-info span:last-child{color:var(--text);font-weight:500}
+  .field{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.875rem}
+  .field label{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim);font-weight:500}
+  .field input,.field select{padding:.62rem .875rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s;width:100%}
+  .field input:focus,.field select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.08)}
+  .field select option{background:#0d2240}
+
+  /* Toast */
+  .toast{position:fixed;bottom:1.75rem;right:1.75rem;z-index:300;padding:.8rem 1.1rem;border-radius:10px;font-size:.83rem;display:flex;align-items:center;gap:.55rem;transform:translateY(20px);opacity:0;transition:all .3s cubic-bezier(.23,1,.32,1);max-width:320px}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.sucesso{background:rgba(76,175,130,.15);border:1px solid rgba(76,175,130,.3);color:#6dd6a8}
+  .toast.erro{background:rgba(224,90,90,.15);border:1px solid rgba(224,90,90,.3);color:#f08080}
+
+  /* Ícones de alerta na linha */
+  .icons-cell{display:flex;gap:.3rem;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<div class="bg"></div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-row">
+        <div class="logo-icon">
+          <svg width="16" height="16" viewBox="0 0 32 32" fill="none"><path d="M4 20C4 20 7 14 16 14C25 14 28 18 28 18C28 18 25 24 20 25C15 26 10 24 7 22L4 20Z" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="18" r="1.5" fill="#c9a84c" opacity=".8"/></svg>
+        </div>
+        <div><div class="logo-text">Gestão de Emendas</div><div class="logo-sub">Hospital da Baleia</div></div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-label">Contabilidade</div>
+      <a class="nav-item active" onclick="ativarTab('painel')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Painel de Alertas
+      </a>
+      <a class="nav-item" onclick="ativarTab('contas')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Gestão de Contas
+      </a>
+      <a class="nav-item hidden" id="nav-regras" onclick="ativarTab('regras')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Regras (Admin)
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="sidebarAvatar">?</div>
+        <div><div class="user-name" id="sidebarNome">—</div><div class="user-role" id="sidebarCargo">Contabilidade</div></div>
+      </div>
+      <button class="btn-logout" onclick="logout()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sair
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="tabs-bar">
+      <button class="tab-btn active" id="tab-painel" onclick="ativarTab('painel')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Painel de Alertas
+      </button>
+      <button class="tab-btn" id="tab-contas" onclick="ativarTab('contas')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+        Gestão de Contas
+      </button>
+      <button class="tab-btn hidden" id="tab-regras" onclick="ativarTab('regras')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Regras (Admin)
+      </button>
+    </div>
+
+    <!-- ════════════════════════════ -->
+    <!-- ABA 1: PAINEL DE ALERTAS    -->
+    <!-- ════════════════════════════ -->
+    <div class="tab-content active" id="content-painel">
+      <!-- Stats clicáveis -->
+      <div class="stats-row">
+        <div class="stat-card" onclick="filtrarPorSev('critico')" id="card-critico">
+          <div class="stat-label">🚨 Crítico (vencidas)</div>
+          <div class="stat-value" id="statCritico" style="color:var(--crit)">—</div>
+        </div>
+        <div class="stat-card" onclick="filtrarPorSev('vermelho')" id="card-vermelho">
+          <div class="stat-label">🔴 Vence em 15 dias</div>
+          <div class="stat-value" id="statVermelho" style="color:var(--err)">—</div>
+        </div>
+        <div class="stat-card" onclick="filtrarPorSev('amarelo')" id="card-amarelo">
+          <div class="stat-label">⚠️ Vence em 60 dias</div>
+          <div class="stat-value" id="statAmarelo" style="color:var(--warn)">—</div>
+        </div>
+        <div class="stat-card" onclick="filtrarPorSaldo()" id="card-saldo">
+          <div class="stat-label">💰 Saldo ≤ R$150</div>
+          <div class="stat-value" id="statSaldo" style="color:var(--azul)">—</div>
+        </div>
+        <div class="stat-card" onclick="filtrarPorSev('normal')" id="card-normal">
+          <div class="stat-label">✅ Em dia</div>
+          <div class="stat-value" id="statNormal" style="color:var(--ok)">—</div>
+        </div>
+      </div>
+
+      <!-- Lista de alertas -->
+      <div class="panel">
+        <div class="tbl-controls">
+          <div class="search-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search" type="text" id="searchPainel" placeholder="Buscar por conta..." oninput="filtrarPainel()">
+          </div>
+          <button class="btn-secondary" onclick="limparFiltro()" style="font-size:.75rem;padding:.45rem .875rem">Limpar filtro</button>
+          <button class="btn-primary" onclick="carregarContas()" style="margin-left:auto;font-size:.78rem;padding:.5rem 1rem">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Atualizar
+          </button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>CONTA</th><th>REGRA</th><th>ÚLTIMA PRESTAÇÃO</th>
+              <th>PRÓXIMA PRESTAÇÃO</th><th>SITUAÇÃO</th><th>SALDO</th>
+              <th>VIGÊNCIA</th><th>ALERTAS</th><th>AÇÕES</th>
+            </tr></thead>
+            <tbody id="tbodyPainel">
+              <tr><td colspan="9" class="loading-state"><p>Clique em "Atualizar" para carregar</p></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="tbl-footer" id="footerPainel" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════ -->
+    <!-- ABA 2: GESTÃO DE CONTAS     -->
+    <!-- ════════════════════════════ -->
+    <div class="tab-content" id="content-contas">
+      <div class="panel">
+        <div class="tbl-controls">
+          <div class="search-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search" type="text" id="searchContas" placeholder="Buscar por conta, termo..." oninput="filtrarContas()">
+          </div>
+          <select class="filter" id="filtroPresto" onchange="filtrarContas()">
+            <option value="">Todos</option>
+            <option value="Sim">Prestou</option>
+            <option value="Não">Não prestou</option>
+            <option value="Pendente">Pendente</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--text-dim);cursor:pointer">
+            <input type="checkbox" id="mostrarEncerradas" onchange="filtrarContas()" style="accent-color:var(--gold)">
+            Mostrar encerradas
+          </label>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>CONTA</th><th>TERMO</th><th>ANO</th><th>REGRA</th>
+              <th>PRÓX. PRESTAÇÃO</th><th>PRESTOU?</th><th>SALDO</th>
+              <th>LIBERADA</th><th>ENCERRADA</th><th>AÇÕES</th>
+            </tr></thead>
+            <tbody id="tbodyContas">
+              <tr><td colspan="10" class="loading-state"><p>Carregando...</p></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════ -->
+    <!-- ABA 3: REGRAS (Admin)       -->
+    <!-- ════════════════════════════ -->
+    <div class="tab-content" id="content-regras">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Editar Regras de Prestação de Contas</span>
+          <span style="font-size:.75rem;color:var(--text-dim)">Apenas Núcleo de Projetos</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>CONTA</th><th>REGRA ATUAL</th><th>PRÓXIMA PRESTAÇÃO</th>
+              <th>LIBERADA</th><th>ENCERRADA</th><th>NOVA REGRA</th><th>SALVAR</th>
+            </tr></thead>
+            <tbody id="tbodyRegras">
+              <tr><td colspan="7" class="loading-state"><p>Carregando...</p></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL REGISTRAR PRESTAÇÃO -->
+<div class="modal-overlay" id="modalPrestacao">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Registrar Prestação de Contas</span>
+      <button style="background:none;border:none;color:var(--text-dim);cursor:pointer" onclick="fecharModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-info" id="modalContaInfo"></div>
+      <div class="field">
+        <label>DATA DA PRESTAÇÃO *</label>
+        <input type="date" id="prest_data">
+      </div>
+      <div class="field">
+        <label>OBSERVAÇÃO</label>
+        <input type="text" id="prest_obs" placeholder="Opcional">
+      </div>
+      <div id="alertModalPrest" style="display:none;padding:.6rem .9rem;border-radius:8px;font-size:.82rem;background:rgba(224,90,90,.12);border:1px solid rgba(224,90,90,.3);color:#f08080"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-primary" id="btnConfirmarPrest" onclick="confirmarPrestacao()">
+        <span id="btnPrestTxt">Confirmar Prestação</span>
+        <span class="spinner-sm" id="btnPrestSpin" style="display:none"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+const API_URL = 'COLE_AQUI_A_URL_DO_APPS_SCRIPT';
+// ══════════════════════════════════════════════════
+
+let TOKEN = null, SESSAO = null;
+let CONTAS_DADOS = [], CONTAS_FILTRADAS = [];
+let REGISTRO_ATUAL = null;
+let FILTRO_SEV = null, FILTRO_SALDO = false;
+const IS_ADMIN = () => SESSAO && SESSAO.cargo === 'Admin';
+
+const REGRAS_OPCOES = [
+  'Semanal','Quinzenal','Mensal','Bimestral','Trimestral',
+  'Semestral','Anual','Ao final do ano','Ao final da vigência'
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+  TOKEN = localStorage.getItem('emendas_token');
+  const raw = localStorage.getItem('emendas_usuario');
+  if (!TOKEN || !raw) { window.location.href = 'index.html'; return; }
+  SESSAO = JSON.parse(raw);
+  if (!['Contabilidade','NucleoProj','RG'].includes(SESSAO.setor)) {
+    showToast('Acesso negado.','erro');
+    setTimeout(() => window.location.href = 'index.html', 2000); return;
+  }
+
+  document.getElementById('sidebarNome').textContent   = SESSAO.nome;
+  document.getElementById('sidebarAvatar').textContent = SESSAO.nome.charAt(0).toUpperCase();
+  document.getElementById('sidebarCargo').textContent  = SESSAO.setor;
+
+  if (IS_ADMIN()) {
+    ['nav-regras','tab-regras'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('hidden');
+    });
+  }
+
+  carregarContas();
+});
+
+async function api(acao, payload = {}) {
+  const res = await fetch(API_URL, {
+    method:'POST', headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify({ acao, token: TOKEN, payload })
+  });
+  if (!res.ok) throw new Error('Erro de rede: ' + res.status);
+  const data = await res.json();
+  if (data.relogin) { localStorage.clear(); window.location.href = 'index.html'; }
+  return data;
+}
+
+function ativarTab(tab) {
+  ['painel','contas','regras'].forEach(t => {
+    document.getElementById('content-' + t).classList.toggle('active', t === tab);
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  if (tab === 'regras') renderRegras(CONTAS_DADOS);
+}
+
+async function carregarContas() {
+  document.getElementById('tbodyPainel').innerHTML =
+    '<tr><td colspan="9" class="loading-state"><p>Carregando...</p></td></tr>';
+  document.getElementById('tbodyContas').innerHTML =
+    '<tr><td colspan="10" class="loading-state"><p>Carregando...</p></td></tr>';
+  try {
+    const res = await api('cont.listar', { encerradas: true });
+    if (!res.ok) { showToast(res.erro,'erro'); return; }
+    CONTAS_DADOS    = res.dados    || [];
+    CONTAS_FILTRADAS= [...CONTAS_DADOS];
+    atualizarStats(res.resumo || {});
+    renderPainel(CONTAS_FILTRADAS);
+    renderContas(CONTAS_FILTRADAS);
+  } catch(e) { showToast('Erro ao carregar.','erro'); }
+}
+
+function atualizarStats(resumo) {
+  document.getElementById('statCritico').textContent = resumo.criticos    || 0;
+  document.getElementById('statVermelho').textContent= resumo.vermelhos   || 0;
+  document.getElementById('statAmarelo').textContent = resumo.amarelos    || 0;
+  document.getElementById('statSaldo').textContent   = resumo.saldo_baixo || 0;
+  document.getElementById('statNormal').textContent  =
+    (resumo.total||0) - (resumo.criticos||0) - (resumo.vermelhos||0) - (resumo.amarelos||0);
+}
+
+// ── FILTROS ──
+function filtrarPorSev(sev) {
+  FILTRO_SEV   = FILTRO_SEV === sev ? null : sev;
+  FILTRO_SALDO = false;
+  aplicarFiltros();
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
+  if (FILTRO_SEV) document.getElementById('card-' + sev)?.classList.add('active-filter');
+}
+
+function filtrarPorSaldo() {
+  FILTRO_SALDO = !FILTRO_SALDO;
+  FILTRO_SEV   = null;
+  aplicarFiltros();
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
+  if (FILTRO_SALDO) document.getElementById('card-saldo')?.classList.add('active-filter');
+}
+
+function limparFiltro() {
+  FILTRO_SEV = null; FILTRO_SALDO = false;
+  document.getElementById('searchPainel').value = '';
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
+  CONTAS_FILTRADAS = [...CONTAS_DADOS];
+  renderPainel(CONTAS_FILTRADAS);
+}
+
+function filtrarPainel() {
+  aplicarFiltros();
+}
+
+function aplicarFiltros() {
+  const q = document.getElementById('searchPainel').value.toLowerCase();
+  CONTAS_FILTRADAS = CONTAS_DADOS.filter(r => {
+    const matchQ    = !q || String(r.CONTA||'').toLowerCase().includes(q) || String(r.TERMO_COOPERACAO||'').toLowerCase().includes(q);
+    const matchSev  = !FILTRO_SEV   || r.severidade === FILTRO_SEV;
+    const matchSald = !FILTRO_SALDO || r.alerta_saldo;
+    return matchQ && matchSev && matchSald;
+  });
+  renderPainel(CONTAS_FILTRADAS);
+}
+
+function filtrarContas() {
+  const q       = document.getElementById('searchContas').value.toLowerCase();
+  const presto  = document.getElementById('filtroPresto').value;
+  const encerr  = document.getElementById('mostrarEncerradas').checked;
+  const filtradas = CONTAS_DADOS.filter(r =>
+    (encerr || !r.CONTA_ENCERRADA) &&
+    (!q      || String(r.CONTA||'').toLowerCase().includes(q) || String(r.TERMO_COOPERACAO||'').toLowerCase().includes(q)) &&
+    (!presto || String(r.PRESTOU_CONTAS||'') === presto)
+  );
+  renderContas(filtradas);
+}
+
+// ── RENDER PAINEL ──
+function renderPainel(lista) {
+  const tbody = document.getElementById('tbodyPainel');
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-state"><p>Nenhum registro encontrado</p></td></tr>';
+    document.getElementById('footerPainel').style.display = 'none'; return;
+  }
+
+  const sevMap = {
+    'critico':  ['sev-critico',  '🚨 Vencida'],
+    'vermelho': ['sev-vermelho', '🔴 15 dias'],
+    'amarelo':  ['sev-amarelo',  '⚠️ 60 dias'],
+    'normal':   ['sev-normal',   '✅ Em dia'],
+  };
+  const prestMap = {
+    'Sim':      'pill-sim',
+    'Não':      'pill-nao',
+    'Pendente': 'pill-pend',
+  };
+
+  tbody.innerHTML = lista.map(r => {
+    const [sevClass, sevLabel] = sevMap[r.severidade] || sevMap['normal'];
+    const prestClass = prestMap[String(r.PRESTOU_CONTAS||'Pendente')] || 'pill-pend';
+    const saldo  = parseFloat(r.SALDO_ACUMULADO || 0);
+    const ultPrest = r.ULTIMA_PRESTACAO ? new Date(r.ULTIMA_PRESTACAO).toLocaleDateString('pt-BR') : '—';
+    const proxPrest= r.PROXIMA_PRESTACAO? new Date(r.PROXIMA_PRESTACAO).toLocaleDateString('pt-BR'): '—';
+    const termVig  = r.TERMINO_VIGENCIA ? new Date(r.TERMINO_VIGENCIA).toLocaleDateString('pt-BR') : '—';
+
+    const icones = [];
+    if (r.alerta_saldo)   icones.push(`<span class="sev sev-azul" title="Saldo baixo">💰</span>`);
+    if (r.alerta_vigencia)icones.push(`<span class="sev sev-amarelo" title="Vigência em ${r.diff_vigencia}d">📅</span>`);
+    if (!r.LIBERADA_PRESTACAO) icones.push(`<span class="sev sev-vermelho" title="Não liberada para prestação">🔒</span>`);
+
+    const podePrestar = !r.CONTA_ENCERRADA;
+
+    return `<tr>
+      <td><strong style="color:var(--cream)">${String(r.CONTA||'—')}</strong></td>
+      <td style="color:var(--text-dim)">${String(r.REGRA_PRESTACAO_CONTAS||'—')}</td>
+      <td style="color:var(--text-dim)">${ultPrest}</td>
+      <td><strong>${proxPrest}</strong></td>
+      <td><span class="sev ${sevClass}">${sevLabel}</span></td>
+      <td style="color:${saldo<=150&&saldo>0?'var(--azul)':'var(--text)'}; font-weight:500">${fmt(saldo)}</td>
+      <td style="color:var(--text-dim)">${termVig}${r.diff_vigencia!==null?' ('+r.diff_vigencia+'d)':''}</td>
+      <td><div class="icons-cell">${icones.join('')||'—'}</div></td>
+      <td>
+        ${podePrestar ? `<button class="btn-sm btn-sm-gold" onclick="abrirModalPrestacao('${r.id}')">Registrar</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('footerPainel').style.display = 'block';
+  document.getElementById('footerPainel').innerHTML = `${lista.length} conta(s) exibida(s)`;
+}
+
+// ── RENDER CONTAS ──
+function renderContas(lista) {
+  const tbody = document.getElementById('tbodyContas');
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty-state"><p>Nenhuma conta encontrada</p></td></tr>'; return;
+  }
+  const prestMap = { 'Sim':'pill-sim','Não':'pill-nao','Pendente':'pill-pend' };
+
+  tbody.innerHTML = lista.map(r => {
+    const prox    = r.PROXIMA_PRESTACAO ? new Date(r.PROXIMA_PRESTACAO).toLocaleDateString('pt-BR') : '—';
+    const saldo   = parseFloat(r.SALDO_ACUMULADO || 0);
+    const prestC  = prestMap[String(r.PRESTOU_CONTAS||'Pendente')] || 'pill-pend';
+
+    const btnLiberar = IS_ADMIN() ? `
+      <button class="btn-sm ${r.LIBERADA_PRESTACAO ? 'btn-sm-err' : 'btn-sm-ok'}"
+        onclick="toggleLiberar('${r.id}', ${r.LIBERADA_PRESTACAO})">
+        ${r.LIBERADA_PRESTACAO ? 'Bloquear' : 'Liberar'}
+      </button>` : '';
+
+    const btnEncerrar = IS_ADMIN() ? `
+      <button class="btn-sm ${r.CONTA_ENCERRADA ? 'btn-sm-warn' : 'btn-sm-err'}"
+        onclick="toggleEncerrar('${r.id}', ${r.CONTA_ENCERRADA})">
+        ${r.CONTA_ENCERRADA ? 'Reabrir' : 'Encerrar'}
+      </button>` : '';
+
+    return `<tr>
+      <td><strong style="color:var(--cream)">${String(r.CONTA||'—')}</strong></td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${String(r.TERMO_COOPERACAO||'')}">${String(r.TERMO_COOPERACAO||'—')}</td>
+      <td style="color:var(--text-dim)">${String(r.ANO||'—')}</td>
+      <td style="color:var(--text-dim)">${String(r.REGRA_PRESTACAO_CONTAS||'—')}</td>
+      <td>${prox}</td>
+      <td><span class="pill ${prestC}">${String(r.PRESTOU_CONTAS||'Pendente')}</span></td>
+      <td style="color:${saldo<=150&&saldo>0?'var(--azul)':'var(--gold)'};font-weight:500">${fmt(saldo)}</td>
+      <td>${r.LIBERADA_PRESTACAO ? '<span class="sev sev-normal">✅ Sim</span>' : '<span class="sev sev-vermelho">🔒 Não</span>'}</td>
+      <td>${r.CONTA_ENCERRADA ? '<span class="sev sev-amarelo">Encerrada</span>' : '<span style="color:var(--text-dim)">Ativa</span>'}</td>
+      <td>
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap">
+          ${!r.CONTA_ENCERRADA ? `<button class="btn-sm btn-sm-gold" onclick="abrirModalPrestacao('${r.id}')">Prestação</button>` : ''}
+          ${btnLiberar}
+          ${btnEncerrar}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── RENDER REGRAS (Admin) ──
+function renderRegras(lista) {
+  const tbody = document.getElementById('tbodyRegras');
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><p>Nenhuma conta</p></td></tr>'; return;
+  }
+  const regrasOpts = REGRAS_OPCOES.map(r => `<option value="${r}">${r}</option>`).join('');
+
+  tbody.innerHTML = lista.map(r => {
+    const prox = r.PROXIMA_PRESTACAO ? new Date(r.PROXIMA_PRESTACAO).toLocaleDateString('pt-BR') : '—';
+    return `<tr>
+      <td><strong style="color:var(--cream)">${String(r.CONTA||'—')}</strong></td>
+      <td style="color:var(--text-dim)">${String(r.REGRA_PRESTACAO_CONTAS||'—')}</td>
+      <td style="color:var(--text-dim)">${prox}</td>
+      <td>${r.LIBERADA_PRESTACAO ? '<span class="sev sev-normal">Sim</span>' : '<span class="sev sev-vermelho">Não</span>'}</td>
+      <td>${r.CONTA_ENCERRADA ? '<span class="sev sev-amarelo">Sim</span>' : '—'}</td>
+      <td>
+        <select id="regra_${r.id}" style="padding:.4rem .75rem;background:rgba(7,21,42,.65);border:1px solid rgba(201,168,76,.18);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.8rem;outline:none">
+          <option value="">Manter atual</option>
+          ${regrasOpts}
+        </select>
+      </td>
+      <td>
+        <button class="btn-sm btn-sm-gold" onclick="salvarRegra('${r.id}')">Salvar</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── MODAL PRESTAÇÃO ──
+function abrirModalPrestacao(id) {
+  REGISTRO_ATUAL = CONTAS_DADOS.find(r => r.id === id);
+  if (!REGISTRO_ATUAL) return;
+
+  const prox = REGISTRO_ATUAL.PROXIMA_PRESTACAO
+    ? new Date(REGISTRO_ATUAL.PROXIMA_PRESTACAO).toLocaleDateString('pt-BR') : '—';
+
+  document.getElementById('modalContaInfo').innerHTML = `
+    <div><span>Conta:</span><span>${REGISTRO_ATUAL.CONTA||'—'}</span></div>
+    <div><span>Regra:</span><span>${REGISTRO_ATUAL.REGRA_PRESTACAO_CONTAS||'—'}</span></div>
+    <div><span>Próxima prestação:</span><span>${prox}</span></div>
+    <div><span>Prestou contas?</span><span>${REGISTRO_ATUAL.PRESTOU_CONTAS||'Pendente'}</span></div>
+  `;
+  document.getElementById('prest_data').value = new Date().toISOString().split('T')[0];
+  document.getElementById('prest_obs').value  = '';
+  document.getElementById('alertModalPrest').style.display = 'none';
+  document.getElementById('modalPrestacao').classList.add('open');
+}
+
+async function confirmarPrestacao() {
+  if (!REGISTRO_ATUAL) return;
+  const data = document.getElementById('prest_data').value;
+  if (!data) {
+    document.getElementById('alertModalPrest').textContent = 'Data é obrigatória.';
+    document.getElementById('alertModalPrest').style.display = 'block'; return;
+  }
+
+  document.getElementById('btnConfirmarPrest').disabled = true;
+  document.getElementById('btnPrestTxt').style.display  = 'none';
+  document.getElementById('btnPrestSpin').style.display = 'inline-block';
+
+  try {
+    const res = await api('cont.prestacao', {
+      id:             REGISTRO_ATUAL.id,
+      data_prestacao: data,
+      observacao:     document.getElementById('prest_obs').value,
+    });
+    if (!res.ok) {
+      document.getElementById('alertModalPrest').textContent = res.erro;
+      document.getElementById('alertModalPrest').style.display = 'block'; return;
+    }
+    showToast(res.msg + (res.proxima_prestacao ? ' · Próxima: ' + new Date(res.proxima_prestacao).toLocaleDateString('pt-BR') : ''), 'sucesso');
+    fecharModal();
+    carregarContas();
+  } catch(e) {
+    document.getElementById('alertModalPrest').textContent = 'Erro de conexão.';
+    document.getElementById('alertModalPrest').style.display = 'block';
+  } finally {
+    document.getElementById('btnConfirmarPrest').disabled = false;
+    document.getElementById('btnPrestTxt').style.display  = 'inline';
+    document.getElementById('btnPrestSpin').style.display = 'none';
+  }
+}
+
+function fecharModal() {
+  document.getElementById('modalPrestacao').classList.remove('open');
+  REGISTRO_ATUAL = null;
+}
+
+// ── ADMIN AÇÕES ──
+async function toggleLiberar(id, liberadaAtual) {
+  const acao = liberadaAtual ? 'bloquear' : 'liberar';
+  if (!confirm('Deseja ' + acao + ' esta conta para prestação de contas?')) return;
+  try {
+    const res = await api('cont.liberar', { id, liberar: !liberadaAtual });
+    if (!res.ok) { showToast(res.erro,'erro'); return; }
+    showToast(res.msg,'sucesso');
+    carregarContas();
+  } catch(e) { showToast('Erro de conexão.','erro'); }
+}
+
+async function toggleEncerrar(id, encerradaAtual) {
+  const acao = encerradaAtual ? 'reabrir' : 'encerrar';
+  if (!confirm('Deseja ' + acao + ' esta conta?')) return;
+  try {
+    const res = await api('cont.encerrar', { id, encerrar: !encerradaAtual });
+    if (!res.ok) { showToast(res.erro,'erro'); return; }
+    showToast(res.msg,'sucesso');
+    carregarContas();
+  } catch(e) { showToast('Erro de conexão.','erro'); }
+}
+
+async function salvarRegra(id) {
+  const novaRegra = document.getElementById('regra_' + id).value;
+  if (!novaRegra) { showToast('Selecione uma nova regra.','erro'); return; }
+  try {
+    const res = await api('cont.regra', { id, regra: novaRegra });
+    if (!res.ok) { showToast(res.erro,'erro'); return; }
+    showToast(res.msg,'sucesso');
+    carregarContas();
+  } catch(e) { showToast('Erro de conexão.','erro'); }
+}
+
+// ── HELPERS ──
+function fmt(n) { return (n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+
+let toastTimer;
+function showToast(msg, tipo='sucesso') {
+  const el = document.getElementById('toast');
+  el.className = 'toast ' + tipo;
+  el.innerHTML = (tipo==='sucesso'
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>'
+    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+  ) + `<span>${msg}</span>`;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+async function logout() {
+  if (!confirm('Deseja sair?')) return;
+  try { await api('logout'); } catch(e) {}
+  localStorage.clear();
+  window.location.href = 'index.html';
+}
+
+document.getElementById('modalPrestacao').addEventListener('click', e => {
+  if (e.target === e.currentTarget) fecharModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(); });
+</script>
+</body>
+</html>
