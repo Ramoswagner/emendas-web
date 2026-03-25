@@ -187,6 +187,11 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
         Consolidado OCs
       </a>
+      <a class="nav-item" onclick="ativarTab('requisicoes')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        Requisições
+        <span id="badgeReq" style="margin-left:auto;background:rgba(255,68,68,.2);color:#ff8080;font-size:.62rem;padding:.12rem .45rem;border-radius:20px;border:1px solid rgba(255,68,68,.25);display:none">0</span>
+      </a>
     </nav>
     <div class="sidebar-footer">
       <div class="user-info">
@@ -243,6 +248,10 @@
       <button class="tab-btn" id="tab-consolidado" onclick="ativarTab('consolidado')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
         Consolidado OCs
+      </button>
+      <button class="tab-btn" id="tab-requisicoes" onclick="ativarTab('requisicoes')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
+        Requisições
       </button>
     </div>
 
@@ -405,6 +414,38 @@
       </div>
     </div>
 
+    <!-- ════════════════════════════ -->
+    <!-- ABA 5: REQUISIÇÕES          -->
+    <!-- ════════════════════════════ -->
+    <div class="tab-content" id="content-requisicoes">
+      <div class="panel">
+        <div class="tbl-controls">
+          <select class="filter" id="filtroReqStatus" onchange="filtrarRequisicoes()">
+            <option value="">Todas</option>
+            <option value="Pendente">Pendentes</option>
+            <option value="Autorizado">Autorizadas</option>
+            <option value="Rejeitado">Rejeitadas</option>
+          </select>
+          <button class="btn-primary" onclick="carregarRequisicoes()" style="margin-left:auto;font-size:.78rem;padding:.5rem 1rem">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Atualizar
+          </button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>DATA</th><th>COMPRADOR</th><th>CONTA ORIGEM</th><th>CATEGORIA</th>
+              <th>FORNECEDOR</th><th>VALOR</th><th>CONTA DESTINO</th><th>MOTIVO</th><th>STATUS</th><th>AÇÕES</th>
+            </tr></thead>
+            <tbody id="tbodyReq">
+              <tr><td colspan="10" class="loading-state"><p>Clique em "Atualizar" para carregar</p></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="tbl-footer" id="footerReq" style="display:none"></div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -479,6 +520,13 @@ document.addEventListener('DOMContentLoaded', () => {
   carregarAPagar();
   verificarAlertasSaldo();
   carregarContasParaSaldo();
+  // Badge de requisições pendentes
+  api('req.pendentes').then(r => {
+    if (r.ok && r.pendentes > 0) {
+      const b = document.getElementById('badgeReq');
+      if (b) { b.textContent = r.pendentes; b.style.display = 'inline'; }
+    }
+  }).catch(() => {});
 });
 
 async function api(acao, payload = {}) {
@@ -494,7 +542,7 @@ async function api(acao, payload = {}) {
 
 // ── TABS ──
 function ativarTab(tab) {
-  ['apagar','pagas','saldos','consolidado'].forEach(t => {
+  ['apagar','pagas','saldos','consolidado','requisicoes'].forEach(t => {
     document.getElementById('content-' + t).classList.toggle('active', t === tab);
     document.getElementById('tab-' + t).classList.toggle('active', t === tab);
   });
@@ -502,6 +550,7 @@ function ativarTab(tab) {
   if (tab === 'pagas' && NOTAS_PAGAS.length === 0)           carregarPagas();
   if (tab === 'saldos')                                      carregarSaldos();
   if (tab === 'consolidado' && OCS_CONSOLIDADO.length === 0) carregarConsolidado();
+  if (tab === 'requisicoes') carregarRequisicoes();
 }
 
 // ── ALERTAS DE SALDO ──
@@ -872,6 +921,95 @@ function showToast(msg, tipo='sucesso') {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
 }
+
+
+// ── REQUISIÇÕES ──
+let REQUISICOES = [];
+
+async function carregarRequisicoes() {
+  document.getElementById('tbodyReq').innerHTML =
+    '<tr><td colspan="10" class="loading-state"><p>Carregando...</p></td></tr>';
+  try {
+    const res = await api('req.listar');
+    if (!res.ok) { showToast(res.erro, 'erro'); return; }
+    REQUISICOES = res.dados || [];
+    filtrarRequisicoes();
+    // Badge
+    const pendentes = REQUISICOES.filter(r => r.status === 'Pendente').length;
+    const badge = document.getElementById('badgeReq');
+    if (pendentes > 0) { badge.textContent = pendentes; badge.style.display = 'inline'; }
+    else { badge.style.display = 'none'; }
+  } catch(e) { showToast('Erro ao carregar requisições.', 'erro'); }
+}
+
+function filtrarRequisicoes() {
+  const status = document.getElementById('filtroReqStatus').value;
+  const filtradas = status ? REQUISICOES.filter(r => r.status === status) : REQUISICOES;
+  renderRequisicoes(filtradas);
+}
+
+function renderRequisicoes(lista) {
+  const tbody = document.getElementById('tbodyReq');
+  const pillCat = {'CUSTEIO':'pill-c','INVESTIMENTO':'pill-i','CONTRATO':'pill-ct'};
+  const pillStatus = {'Pendente':'pill-pend','Autorizado':'pill-ab','Rejeitado':'pill-err'};
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty-state"><p>Nenhuma requisição encontrada</p></td></tr>';
+    document.getElementById('footerReq').style.display = 'none'; return;
+  }
+  tbody.innerHTML = lista.map(r => {
+    const data = r.data_solicitacao ? new Date(r.data_solicitacao).toLocaleDateString('pt-BR') : '—';
+    const cat  = String(r.categoria || '');
+    const isPendente = r.status === 'Pendente';
+    const motivoTrunc = String(r.motivo || '—').slice(0, 50) + (String(r.motivo || '').length > 50 ? '...' : '');
+    return `<tr>
+      <td style="color:var(--text-dim)">${data}</td>
+      <td>${String(r.solicitado_por || '—')}</td>
+      <td><strong style="color:var(--cream)">${String(r.conta_origem || '—')}</strong></td>
+      <td>${cat ? `<span class="pill ${pillCat[cat] || ''}">${cat}</span>` : '—'}</td>
+      <td>${String(r.fornecedor || '—')}</td>
+      <td style="color:var(--gold);font-weight:500">${fmt(parseFloat(r.valor || 0))}</td>
+      <td style="color:var(--ok)">${String(r.conta_destino || '—')}</td>
+      <td style="max-width:180px;color:var(--text-dim);font-size:.75rem" title="${String(r.motivo || '')}">${motivoTrunc}</td>
+      <td><span class="pill ${pillStatus[r.status] || 'pill-pend'}">${String(r.status || '—')}</span></td>
+      <td>
+        ${isPendente ? `
+          <div style="display:flex;gap:.35rem">
+            <button class="btn-pagar" style="background:linear-gradient(135deg,var(--gold-dim),var(--gold));color:var(--navy)" onclick="autorizarReq('${r.id}')">Autorizar</button>
+            <button class="btn-pagar" style="background:rgba(224,90,90,.2);color:#f08080;border:1px solid rgba(224,90,90,.3)" onclick="rejeitarReq('${r.id}')">Rejeitar</button>
+          </div>
+        ` : `<span style="font-size:.72rem;color:var(--text-dim)">${r.analisado_por ? 'por ' + r.analisado_por : '—'}</span>`}
+      </td>
+    </tr>`;
+  }).join('');
+
+  const pendentes = lista.filter(r => r.status === 'Pendente').length;
+  document.getElementById('footerReq').style.display = 'block';
+  document.getElementById('footerReq').innerHTML =
+    `${lista.length} requisição(ões) · <strong style="color:#ff8080">${pendentes} pendente(s)</strong>`;
+}
+
+async function autorizarReq(id) {
+  if (!confirm('Autorizar esta solicitação? A OC será vinculada à conta destino.')) return;
+  try {
+    const res = await api('req.autorizar', { id });
+    if (!res.ok) { showToast(res.erro, 'erro'); return; }
+    showToast(res.msg, 'sucesso');
+    carregarRequisicoes();
+  } catch(e) { showToast('Erro de conexão.', 'erro'); }
+}
+
+async function rejeitarReq(id) {
+  const justificativa = prompt('Informe a justificativa da rejeição:');
+  if (!justificativa || !justificativa.trim()) return;
+  try {
+    const res = await api('req.rejeitar', { id, justificativa });
+    if (!res.ok) { showToast(res.erro, 'erro'); return; }
+    showToast(res.msg, 'sucesso');
+    carregarRequisicoes();
+  } catch(e) { showToast('Erro de conexão.', 'erro'); }
+}
+
+// ── FIM REQUISIÇÕES ──
 
 async function logout() {
   if (!confirm('Deseja sair?')) return;
